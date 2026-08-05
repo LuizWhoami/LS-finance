@@ -1,0 +1,250 @@
+/* ==========================================================================
+   Barbearia LS - Estilos Base
+   ========================================================================== */
+
+/* Variáveis */
+:root {
+    --sidebar-width: 280px;
+    --navbar-height: 56px;
+    --footer-height: 60px;
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #0dcaf0;
+    --dark-color: #212529;
+    --light-color: #f8f9fa;
+}
+
+/* Reset e Base */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    padding-top: var(--navbar-height);
+    padding-bottom: var(--footer-height);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f7fa;
+}
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    top: var(--navbar-height);
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    padding: 0;
+    width: var(--sidebar-width);
+    background-color: #ffffff;
+    border-right: 1px solid #dee2e6;
+    overflow-y: auto;
+    transition: transform 0.3s ease-in-out;
+}
+
+.sidebar-sticky {
+    height: calc(100vh - var(--navbar-height));
+    overflow-y: auto;
+}
+
+.sidebar .nav-link {
+    padding: 0.75rem 1.5rem;
+    color: #495057;
+    border-left: 3px solid transparent;
+    transition: all 0.2s;
+}
+
+.sidebar .nav-link:hover {
+    color: var(--primary-color);
+    background-color: #f8f9fa;
+    border-left-color: var(--primary-color);
+}
+
+.sidebar .nav-link.active {
+    color: var(--primary-color);
+    background-color: #e7f1ff;
+    border-left-color: var(--primary-color);
+    font-weight: 600;
+}
+
+.sidebar .nav-link i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar-user-info {
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.sidebar-user-info img {
+    border: 3px solid var(--primary-color);
+    padding: 2px;
+}
+
+/* Conteúdo Principal */
+.main-content {
+    margin-left: var(--sidebar-width);
+    padding: 1.5rem;
+    min-height: calc(100vh - var(--navbar-height) - var(--footer-height));
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.show {
+        transform: translateX(0);
+    }
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 600;
+    padding: 1rem 1.25rem;
+}
+
+/* Tabelas */
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    color: #495057;
+}
+
+/* Mensagens */
+.alert {
+    border: none;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+/* Footer */
+.footer {
+    background-color: #ffffff;
+    border-top: 1px solid #dee2e6;
+    height: var(--footer-height);
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    background-color: transparent;
+    padding: 0.5rem 0;
+    margin-bottom: 0;
+}
+
+.breadcrumb-item a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+
+/* Utilitários */
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Animações */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Loading Spinner */
+.spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Scrollbar Customizada */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c7cd;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a0a7ae;
+}

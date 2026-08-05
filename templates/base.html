@@ -1,0 +1,308 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barbearia LS - {% block title %}{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS Personalizado -->
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar Superior -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container-fluid">
+            <!-- Botão para toggle da sidebar (mobile) -->
+            <button class="btn btn-outline-light me-2 d-lg-none" type="button" data-bs-toggle="offcanvas" 
+                    data-bs-target="#sidebarOffcanvas" aria-controls="sidebarOffcanvas">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <!-- Logo -->
+            <a class="navbar-brand" href="{% url 'core:home' %}">
+                <i class="fas fa-cut"></i>
+                Barbearia LS
+            </a>
+            
+            <!-- Toggle para mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
+                    data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" 
+                    aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <!-- Navbar direita -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                        <!-- Notificações -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" title="Notificações">
+                                <i class="fas fa-bell"></i>
+                                <span class="badge bg-danger">0</span>
+                            </a>
+                        </li>
+                        
+                        <!-- Usuário -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" 
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle"></i>
+                                {{ user.get_full_name|default:user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-user"></i> Meu Perfil</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-cog"></i> Configurações</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="post" action="{% url 'accounts:logout' %}" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="fas fa-sign-out-alt"></i> Sair
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:login' %}">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Sidebar e Conteúdo Principal -->
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar Desktop -->
+            {% if user.is_authenticated %}
+            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar sidebar-sticky">
+                <div class="position-sticky pt-3">
+                    <div class="sidebar-user-info text-center mb-4">
+                        <img src="{% static 'images/default-avatar.png' %}" alt="Avatar" 
+                             class="rounded-circle img-fluid" style="width: 80px;">
+                        <h6 class="mt-2">{{ user.get_full_name|default:user.username }}</h6>
+                        <small class="text-muted">{{ user.groups.all|join:", "|default:"Usuário" }}</small>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <!-- Dashboard -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.namespace == 'core' and request.resolver_match.url_name == 'home' %}active{% endif %}" 
+                               href="{% url 'core:home' %}">
+                                <i class="fas fa-home"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        
+                        <!-- Agendamentos -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.namespace == 'appointments' %}active{% endif %}" 
+                               href="{% url 'appointments:list' %}">
+                                <i class="fas fa-calendar-check"></i>
+                                Agendamentos
+                            </a>
+                        </li>
+                        
+                        <!-- Clientes -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.namespace == 'customers' %}active{% endif %}" 
+                               href="{% url 'customers:list' %}">
+                                <i class="fas fa-users"></i>
+                                Clientes
+                            </a>
+                        </li>
+                        
+                        <!-- Barbeiros -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.namespace == 'barbers' %}active{% endif %}" 
+                               href="{% url 'barbers:list' %}">
+                                <i class="fas fa-user-tie"></i>
+                                Barbeiros
+                            </a>
+                        </li>
+                        
+                        <!-- Serviços -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.namespace == 'services' %}active{% endif %}" 
+                               href="{% url 'services:list' %}">
+                                <i class="fas fa-cut"></i>
+                                Serviços
+                            </a>
+                        </li>
+                        
+                        <!-- Produtos -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.namespace == 'products' %}active{% endif %}" 
+                               href="{% url 'products:list' %}">
+                                <i class="fas fa-boxes"></i>
+                                Produtos
+                            </a>
+                        </li>
+                        
+                        <!-- Financeiro -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.namespace == 'finance' %}active{% endif %}" 
+                               href="{% url 'finance:dashboard' %}">
+                                <i class="fas fa-coins"></i>
+                                Financeiro
+                            </a>
+                        </li>
+                        
+                        <!-- Relatórios -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.namespace == 'reports' %}active{% endif %}" 
+                               href="{% url 'reports:index' %}">
+                                <i class="fas fa-chart-bar"></i>
+                                Relatórios
+                            </a>
+                        </li>
+                        
+                        <hr>
+                        
+                        <!-- Configurações -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-cog"></i>
+                                Configurações
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            {% endif %}
+            
+            <!-- Sidebar Mobile (Offcanvas) -->
+            <div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="sidebarOffcanvas" 
+                 aria-labelledby="sidebarOffcanvasLabel">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title" id="sidebarOffcanvasLabel">Menu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <!-- Mesmo conteúdo da sidebar desktop -->
+                    <div class="sidebar-user-info text-center mb-4">
+                        <img src="{% static 'images/default-avatar.png' %}" alt="Avatar" 
+                             class="rounded-circle img-fluid" style="width: 80px;">
+                        <h6 class="mt-2">{{ user.get_full_name|default:user.username }}</h6>
+                        <small class="text-muted">{{ user.groups.all|join:", "|default:"Usuário" }}</small>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <!-- Mesmo menu da sidebar desktop -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'core:home' %}">
+                                <i class="fas fa-home"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-calendar-check"></i> Agendamentos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-users"></i> Clientes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-user-tie"></i> Barbeiros
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-cut"></i> Serviços
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-boxes"></i> Produtos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-coins"></i> Financeiro
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="fas fa-chart-bar"></i> Relatórios
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Conteúdo Principal -->
+            <main class="{% if user.is_authenticated %}col-md-9 ms-sm-auto col-lg-10 px-md-4{% else %}col-12{% endif %} main-content">
+                <!-- Breadcrumb -->
+                {% block breadcrumb %}
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Home</a></li>
+                        {% block breadcrumb_items %}{% endblock %}
+                    </ol>
+                </nav>
+                {% endblock %}
+                
+                <!-- Mensagens do Django -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <!-- Título da página -->
+                {% block page_header %}
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">{% block page_title %}Página{% endblock %}</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        {% block page_actions %}{% endblock %}
+                    </div>
+                </div>
+                {% endblock %}
+                
+                <!-- Conteúdo -->
+                {% block content %}
+                {% endblock %}
+            </main>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer mt-auto py-3 bg-light fixed-bottom">
+        <div class="container text-center">
+            <span class="text-muted">
+                &copy; {% now "Y" %} Barbearia LS - Todos os direitos reservados
+            </span>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jQuery (opcional, para alguns plugins) -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    
+    <!-- JS Personalizado -->
+    <script src="{% static 'js/base.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

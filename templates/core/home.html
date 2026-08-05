@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Barbearia LS{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Cards de resumo -->
+    <div class="col-md-3 mb-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-calendar-check"></i> Agendamentos Hoje
+                </h5>
+                <h2 class="display-4">0</h2>
+                <small>Nenhum agendamento para hoje</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-users"></i> Clientes Ativos
+                </h5>
+                <h2 class="display-4">0</h2>
+                <small>0 novos este mês</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-coins"></i> Faturamento Hoje
+                </h5>
+                <h2 class="display-4">R$ 0,00</h2>
+                <small>R$ 0,00 este mês</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-user-tie"></i> Barbeiros
+                </h5>
+                <h2 class="display-4">0</h2>
+                <small>0 disponíveis hoje</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos (placeholder) -->
+<div class="row">
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-line"></i> Faturamento Mensal
+            </div>
+            <div class="card-body">
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-chart-bar fa-3x mb-3"></i>
+                    <p>Gráfico de faturamento será exibido aqui</p>
+                    <small>Implementar com Chart.js no próximo módulo</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-list"></i> Serviços Mais Vendidos
+            </div>
+            <div class="card-body">
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-cut fa-3x mb-3"></i>
+                    <p>Top serviços serão exibidos aqui</p>
+                    <small>Dados após primeiro atendimento</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Próximos agendamentos -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-clock"></i> Próximos Agendamentos
+            </div>
+            <div class="card-body">
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-calendar-alt fa-3x mb-3"></i>
+                    <p>Nenhum agendamento próximo</p>
+                    <small>Agendamentos aparecerão aqui</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // JavaScript para atualizar dados em tempo real (futuro)
+    console.log('Dashboard da Barbearia LS carregado!');
+</script>
+{% endblock %}
