@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Transações{% endblock %}
+
+{% block page_title %}Transações{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'finance:add_transaction' %}" class="btn btn-primary">
+    <i class="fas fa-plus"></i> Nova Transação
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Filtros -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <select name="type" class="form-select">
+                    <option value="">Todos os tipos</option>
+                    {% for value, label in transaction_types %}
+                    <option value="{{ value }}" {% if request.GET.type == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="payment_method" class="form-select">
+                    <option value="">Todas as formas</option>
+                    {% for value, label in payment_methods %}
+                    <option value="{{ value }}" {% if request.GET.payment_method == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Total -->
+<div class="alert alert-info">
+    <strong>Total: R$ {{ total|floatformat:2 }}</strong>
+</div>
+
+<!-- Lista -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Descrição</th>
+                        <th>Tipo</th>
+                        <th>Forma</th>
+                        <th>Cliente</th>
+                        <th>Barbeiro</th>
+                        <th>Valor</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction.transaction_date|date:"d/m/Y H:i" }}</td>
+                        <td>{{ transaction.description|truncatechars:30 }}</td>
+                        <td>
+                            <span class="badge bg-{% if transaction.transaction_type == 'income' %}success{% elif transaction.transaction_type == 'expense' %}danger{% else %}warning{% endif %}">
+                                {{ transaction.get_transaction_type_display }}
+                            </span>
+                        </td>
+                        <td>{{ transaction.get_payment_method_display }}</td>
+                        <td>{{ transaction.customer|default:"-" }}</td>
+                        <td>{{ transaction.barber|default:"-" }}</td>
+                        <td>R$ {{ transaction.amount }}</td>
+                        <td>
+                            <a href="#" class="btn btn-sm btn-warning">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="#" class="btn btn-sm btn-danger">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">
+                            Nenhuma transação encontrada.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% include 'includes/_pagination.html' %}
+    </div>
+</div>
+{% endblock %}

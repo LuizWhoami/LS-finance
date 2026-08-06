@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalhes da Assinatura{% endblock %}
+
+{% block page_title %}Detalhes da Assinatura{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> Informações da Assinatura
+            </div>
+            <div class="card-body">
+                <p><strong>Cliente:</strong> {{ subscription.customer.full_name }}</p>
+                <p><strong>Plano:</strong> {{ subscription.plan.name }}</p>
+                <p><strong>Status:</strong> 
+                    <span class="badge bg-{% if subscription.status == 'active' %}success{% elif subscription.status == 'expired' %}danger{% elif subscription.status == 'suspended' %}warning{% else %}secondary{% endif %}">
+                        {{ subscription.get_status_display }}
+                    </span>
+                </p>
+                <p><strong>Início:</strong> {{ subscription.start_date|date:"d/m/Y" }}</p>
+                <p><strong>Vencimento:</strong> {{ subscription.end_date|date:"d/m/Y" }}</p>
+                <p><strong>Próxima Cobrança:</strong> {{ subscription.next_billing_date|date:"d/m/Y" }}</p>
+                <p><strong>Valor:</strong> R$ {{ subscription.price_paid }}</p>
+                <p><strong>Renovação Automática:</strong> {% if subscription.auto_renew %}Sim{% else %}Não{% endif %}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-gift"></i> Benefícios Utilizados
+            </div>
+            <div class="card-body">
+                <p><strong>Serviços Gratuitos:</strong> {{ subscription.free_services_used }} de {{ subscription.plan.free_services_per_month }}</p>
+                <p><strong>Último Serviço Gratuito:</strong> {{ subscription.last_free_service_used|date:"d/m/Y"|default:"Nenhum" }}</p>
+                <p><strong>Dias Restantes:</strong> {{ subscription.days_remaining }} dias</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

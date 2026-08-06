@@ -10,6 +10,8 @@ from django.db.models import Sum, Count
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
+from django.core.cache import cache
+from django.http import JsonResponse
 
 from apps.appointments.models import Appointment
 from apps.customers.models import Customer
@@ -173,3 +175,48 @@ class HomeView(AdminRequiredMixin, TemplateView):
 class AboutView(TemplateView):
     """Página Sobre."""
     template_name = 'core/about.html'
+
+
+def check_ip_status(request):
+    """Endpoint para verificar se o IP atual está bloqueado."""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    
+    block_key = f'blocked_ip:{ip}'
+    is_blocked = cache.get(block_key, False)
+    
+    return JsonResponse({
+        'ip': ip,
+        'blocked': is_blocked,
+        'message': 'IP bloqueado' if is_blocked else 'IP liberado'
+    })
+
+
+# Páginas de erro
+def handler404(request, exception):
+    """Página 404 personalizada."""
+    from django.shortcuts import render
+    return render(request, '404.html', status=404)
+
+
+def handler500(request):
+    """Página 500 personalizada."""
+    from django.shortcuts import render
+    return render(request, '500.html', status=500)
+
+
+def handler403(request, exception):
+    """Página 403 personalizada."""
+    from django.shortcuts import render
+    return render(request, '403.html', status=403)
+
+def ratelimited_view(request, exception=None):
+    """View chamada quando o rate limit é excedido."""
+    from django.http import HttpResponse
+    return HttpResponse(
+        '⚠️ Muitas requisições. Por favor, aguarde alguns minutos antes de tentar novamente.',
+        status=429
+    )

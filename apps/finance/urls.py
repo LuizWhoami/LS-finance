@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views  # ADICIONAR ESTA LINHA
+from . import views
 
 app_name = 'finance'
 

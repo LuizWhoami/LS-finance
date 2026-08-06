@@ -16,11 +16,11 @@ class ServiceAdmin(admin.ModelAdmin):
     list_display = ['name', 'category', 'price', 'duration_minutes', 'status', 'is_active']
     list_filter = ['category', 'status', 'is_active']
     search_fields = ['name', 'description']
-    readonly_fields = ['slug', 'total_performed', 'created_at', 'updated_at']
+    readonly_fields = ['total_performed', 'created_at', 'updated_at']
     
     fieldsets = (
         (_('Informações Básicas'), {
-            'fields': ('name', 'slug', 'category', 'description')
+            'fields': ('name', 'category', 'description')
         }),
         (_('Valores'), {
             'fields': ('price', 'duration_minutes', 'commission_percentage')
@@ -32,7 +32,6 @@ class ServiceAdmin(admin.ModelAdmin):
             'fields': ('status', 'is_active')
         }),
         (_('Datas'), {
-            'fields': ('created_at', 'updated_at', 'deleted_at')
+            'fields': ('created_at', 'updated_at')
         }),
     )
-    prepopulated_fields = {'slug': ('name',)}

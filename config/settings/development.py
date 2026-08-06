@@ -60,3 +60,12 @@ LOGGING = {
         },
     },
 }
+
+# Permitir acesso de outros dispositivos na rede
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.0.107']
+
+# Desabilitar rate limit em desenvolvimento
+RATELIMIT_ENABLE = False
+
+# Desabilitar rate limit em desenvolvimento
+RATELIMIT_ENABLE = False

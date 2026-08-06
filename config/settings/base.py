@@ -30,8 +30,7 @@ THIRD_PARTY_APPS = [
     'django_extensions',
 ]
 
-# APPS DO PROJETO - Apenas os que já foram criados
-# Os apps abaixo serão adicionados conforme forem desenvolvidos
+# APPS DO PROJETO
 LOCAL_APPS = [
     'apps.core',
     'apps.accounts',
@@ -39,8 +38,8 @@ LOCAL_APPS = [
     'apps.customers',
     'apps.services',
     'apps.appointments',
-    'apps.finance',
     'apps.products',
+    'apps.finance',
     'apps.subscriptions',
     'apps.reports',
     'apps.client',
@@ -85,7 +84,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database - será sobrescrito em cada ambiente
-# Definição padrão para SQLite (desenvolvimento)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -133,7 +131,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'core:home'
-LOGOUT_REDIRECT_URL = 'core:home'
+LOGOUT_REDIRECT_URL = 'client:home'
 
 # Crispy Forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
@@ -142,13 +140,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 # Messages
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
-# Context Processors adicionais
-TEMPLATES[0]['OPTIONS']['context_processors'].append(
-    'apps.notifications.context_processors.notification_count'
-)
-LOGIN_URL = "accounts:login"
-
-# Login/Logout URLs
-LOGIN_URL = 'accounts:login'
-LOGIN_REDIRECT_URL = 'core:home'
-LOGOUT_REDIRECT_URL = 'client:home'
+# Páginas de erro customizadas
+handler404 = 'core.views.handler404'
+handler500 = 'core.views.handler500'
+handler403 = 'core.views.handler403'

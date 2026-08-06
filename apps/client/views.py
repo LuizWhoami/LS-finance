@@ -12,11 +12,13 @@ from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.db.models import Q
+from django.utils.decorators import method_decorator
 
 from apps.services.models import Service
 from apps.barbers.models import Barber
 from apps.customers.models import Customer
 from apps.appointments.models import Appointment
+# from apps.core.decorators import login_rate_limit, appointment_rate_limit
 
 from .forms import ClientAppointmentForm, ClientRegistrationForm
 
@@ -29,16 +31,14 @@ class ClientHomeView(TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Buscar serviços ativos
         context['services'] = Service.objects.filter(
             status='active', 
             is_active=True
-        )[:6]  # Mostrar apenas 6 serviços na home
-        # Buscar barbeiros ativos
+        )[:6]
         context['barbers'] = Barber.objects.filter(
             status='active', 
             is_active=True
-        )[:4]  # Mostrar apenas 4 barbeiros na home
+        )[:4]
         return context
 
 
@@ -65,15 +65,17 @@ class ClientBarberListView(ListView):
 
 
 class ClientAppointmentCreateView(CreateView):
-    """Cliente cria um agendamento (com ou sem login)."""
+    """Cliente cria um agendamento com rate limit."""
     model = Appointment
     form_class = ClientAppointmentForm
     template_name = 'client/appointment_create.html'
     success_url = reverse_lazy('client:appointments')
 
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def get_initial(self):
         initial = super().get_initial()
-        # Preencher serviço se passado via GET
         service_id = self.request.GET.get('service')
         if service_id:
             try:
@@ -81,7 +83,6 @@ class ClientAppointmentCreateView(CreateView):
                 initial['service'] = service
             except Service.DoesNotExist:
                 pass
-        # Preencher barbeiro se passado via GET
         barber_id = self.request.GET.get('barber')
         if barber_id:
             try:
@@ -95,10 +96,8 @@ class ClientAppointmentCreateView(CreateView):
         customer_name = form.cleaned_data.get('customer_name')
         customer_phone = form.cleaned_data.get('customer_phone')
         
-        # Tentar encontrar cliente pelo telefone
         customer = Customer.objects.filter(phone=customer_phone).first()
         
-        # Se não encontrou e usuário está logado, criar vinculado ao usuário
         if not customer and self.request.user.is_authenticated:
             customer, created = Customer.objects.get_or_create(
                 user=self.request.user,
@@ -110,7 +109,6 @@ class ClientAppointmentCreateView(CreateView):
                 }
             )
         elif not customer:
-            # Cliente visitante - criar sem usuário
             customer = Customer.objects.create(
                 full_name=customer_name,
                 phone=customer_phone,
@@ -118,21 +116,17 @@ class ClientAppointmentCreateView(CreateView):
                 status='active'
             )
         
-        # Se cliente existe e usuário está logado, vincular se não estiver vinculado
         if customer and self.request.user.is_authenticated and not customer.user:
             customer.user = self.request.user
             customer.save()
         
-        # Atualizar nome se mudou
         if customer.full_name != customer_name:
             customer.full_name = customer_name
             customer.save()
         
-        # Criar o agendamento
         appointment = form.save(commit=False)
         appointment.customer = customer
         
-        # Se não estiver logado, salvar session_key
         if not self.request.user.is_authenticated:
             appointment.session_key = self.request.session.session_key
             if not appointment.session_key:
@@ -227,9 +221,12 @@ class ClientProfileView(LoginRequiredMixin, UpdateView):
 
 
 class ClientLoginView(LoginView):
-    """Login do cliente."""
+    """Login do cliente com rate limit."""
     template_name = 'client/login.html'
     redirect_authenticated_user = True
+    
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
     
     def get_success_url(self):
         return reverse_lazy('client:home')
