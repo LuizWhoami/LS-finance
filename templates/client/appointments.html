@@ -1,0 +1,64 @@
+{% extends 'client/base.html' %}
+{% load static %}
+
+{% block title %}Meus Agendamentos{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Meus Agendamentos</h1>
+        <a href="{% url 'client:appointment_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Novo Agendamento
+        </a>
+    </div>
+    
+    {% if appointments %}
+        {% for appointment in appointments %}
+        <div class="card appointment-card status-{{ appointment.status }}">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-3">
+                        <strong>{{ appointment.start_time|date:"d/m/Y" }}</strong>
+                        <br>
+                        <span class="text-muted">{{ appointment.start_time|time:"H:i" }}</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>{{ appointment.service.name }}</strong>
+                        <br>
+                        <span class="text-muted">{{ appointment.barber.full_name }}</span>
+                    </div>
+                    <div class="col-md-2">
+                        <span class="badge bg-{% if appointment.status == 'completed' %}success{% elif appointment.status == 'cancelled' %}danger{% elif appointment.status == 'confirmed' %}primary{% elif appointment.status == 'in_progress' %}warning{% else %}secondary{% endif %}">
+                            {{ appointment.get_status_display }}
+                        </span>
+                    </div>
+                    <div class="col-md-2">
+                        <strong>R$ {{ appointment.final_price }}</strong>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        {% if appointment.can_cancel %}
+                        <a href="{% url 'client:appointment_cancel' appointment.pk %}" 
+                           class="btn btn-sm btn-outline-danger"
+                           onclick="return confirm('Tem certeza que deseja cancelar este agendamento?')">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        {% include 'includes/_pagination.html' %}
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
+            <h4>Nenhum agendamento encontrado</h4>
+            <p class="text-muted">Você ainda não possui agendamentos.</p>
+            <a href="{% url 'client:appointment_create' %}" class="btn btn-primary">
+                <i class="fas fa-calendar-plus"></i> Fazer um Agendamento
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

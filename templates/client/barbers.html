@@ -1,0 +1,57 @@
+{% extends 'client/base.html' %}
+{% load static %}
+
+{% block title %}Nossos Barbeiros{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="section-title text-center">Nossos Barbeiros</h1>
+    <p class="text-center text-muted mb-5">Profissionais qualificados prontos para atender você</p>
+    
+    <div class="row">
+        {% for barber in barbers %}
+        <div class="col-md-3 col-6 mb-4 fade-in-up">
+            <div class="card barber-card h-100">
+                {% if barber.user.avatar %}
+                <img src="{{ barber.user.avatar.url }}" alt="{{ barber.full_name }}" class="avatar">
+                {% else %}
+                <div class="avatar bg-light d-flex align-items-center justify-content-center mx-auto">
+                    <i class="fas fa-user fa-3x text-secondary"></i>
+                </div>
+                {% endif %}
+                <h6>{{ barber.full_name }}</h6>
+                <small class="text-muted">{{ barber.specialty|default:"Profissional" }}</small>
+                <div class="rating">
+                    {% if barber.rating > 0 %}
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= barber.rating %}
+                            ★
+                            {% else %}
+                            ☆
+                            {% endif %}
+                        {% endfor %}
+                        <small>({{ barber.rating }})</small>
+                    {% else %}
+                        <span class="text-muted">Sem avaliações</span>
+                    {% endif %}
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">{{ barber.total_services }} serviços</small>
+                </div>
+                <a href="{% url 'client:appointment_create' %}?barber={{ barber.id }}" class="btn btn-primary btn-sm mt-2">
+                    Agendar
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-user-tie fa-4x text-muted mb-3"></i>
+            <h4>Nenhum barbeiro disponível</h4>
+            <p class="text-muted">Em breve teremos novidades!</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% include 'includes/_pagination.html' %}
+</div>
+{% endblock %}

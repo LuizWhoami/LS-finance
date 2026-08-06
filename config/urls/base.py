@@ -6,37 +6,39 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.shortcuts import redirect
+from django.views.generic import RedirectView
 
 urlpatterns = [
-    # Admin
+    # Admin do Django
     path('admin/', admin.site.urls),
     
+    # Redirecionamento da raiz para o cliente
+    path('', RedirectView.as_view(url='/cliente/', permanent=False), name='root'),
+    
     # Autenticação
-    path('accounts/', include('apps.accounts.urls')),
-    path('auth/', include('django.contrib.auth.urls')),
+    path('accounts/', include('apps.accounts.urls')),  # Usar apenas accounts
+    path('auth/', include('django.contrib.auth.urls')),  # Mantido para compatibilidade
     
-    # Core (Home)
-    path('', include('apps.core.urls')),
+    # Admin (Área Administrativa)
+    path('dashboard/', include('apps.core.urls')),
+    path('services/', include('apps.services.urls')),
+    path('customers/', include('apps.customers.urls')),
+    path('barbers/', include('apps.barbers.urls')),
+    path('appointments/', include('apps.appointments.urls')),
+    path('products/', include('apps.products.urls')),
+    path('finance/', include('apps.finance.urls')),
+    path('subscriptions/', include('apps.subscriptions.urls')),
+    path('reports/', include('apps.reports.urls')),
+    path('notifications/', include('apps.notifications.urls')),
     
-    # NOTA: Os apps abaixo serão adicionados nos próximos módulos
-    # Quando o app for criado, descomente a linha correspondente
-    # path('barbers/', include('apps.barbers.urls')),
-    # path('customers/', include('apps.customers.urls')),
-    # path('services/', include('apps.services.urls')),
-    # path('appointments/', include('apps.appointments.urls')),
-    # path('finance/', include('apps.finance.urls')),
-    # path('products/', include('apps.products.urls')),
-    # path('subscriptions/', include('apps.subscriptions.urls')),
-    # path('reports/', include('apps.reports.urls')),
+    # Cliente (Área Pública)
+    path('cliente/', include('apps.client.urls')),
 ]
 
-# Servir arquivos de mídia em desenvolvimento
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     
-    # Debug Toolbar
     if 'debug_toolbar' in settings.INSTALLED_APPS:
         import debug_toolbar
         urlpatterns = [

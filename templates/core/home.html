@@ -1,108 +1,239 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Dashboard - Barbearia LS{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
-{% block page_title %}Dashboard{% endblock %}
+{% block extra_css %}
+<style>
+    .stat-card {
+        transition: transform 0.2s;
+        border: none;
+        border-radius: 12px;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    .stat-icon {
+        font-size: 2.5rem;
+        opacity: 0.7;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+    .alert-item {
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .alert-item i {
+        font-size: 1.2rem;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
+<!-- Cards de Estatísticas -->
 <div class="row">
-    <!-- Cards de resumo -->
-    <div class="col-md-3 mb-4">
-        <div class="card bg-primary text-white">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card bg-primary text-white">
             <div class="card-body">
-                <h5 class="card-title">
-                    <i class="fas fa-calendar-check"></i> Agendamentos Hoje
-                </h5>
-                <h2 class="display-4">0</h2>
-                <small>Nenhum agendamento para hoje</small>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-4">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <i class="fas fa-users"></i> Clientes Ativos
-                </h5>
-                <h2 class="display-4">0</h2>
-                <small>0 novos este mês</small>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-4">
-        <div class="card bg-warning text-dark">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <i class="fas fa-coins"></i> Faturamento Hoje
-                </h5>
-                <h2 class="display-4">R$ 0,00</h2>
-                <small>R$ 0,00 este mês</small>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-4">
-        <div class="card bg-info text-white">
-            <div class="card-body">
-                <h5 class="card-title">
-                    <i class="fas fa-user-tie"></i> Barbeiros
-                </h5>
-                <h2 class="display-4">0</h2>
-                <small>0 disponíveis hoje</small>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Gráficos (placeholder) -->
-<div class="row">
-    <div class="col-md-8 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-chart-line"></i> Faturamento Mensal
-            </div>
-            <div class="card-body">
-                <div class="text-center text-muted py-5">
-                    <i class="fas fa-chart-bar fa-3x mb-3"></i>
-                    <p>Gráfico de faturamento será exibido aqui</p>
-                    <small>Implementar com Chart.js no próximo módulo</small>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 mb-1">Agendamentos Hoje</h6>
+                        <h2 class="mb-0">{{ appointments_today }}</h2>
+                        <small>{{ appointments_completed_today }} concluídos</small>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="col-md-4 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-list"></i> Serviços Mais Vendidos
-            </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card bg-success text-white">
             <div class="card-body">
-                <div class="text-center text-muted py-5">
-                    <i class="fas fa-cut fa-3x mb-3"></i>
-                    <p>Top serviços serão exibidos aqui</p>
-                    <small>Dados após primeiro atendimento</small>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 mb-1">Faturamento Hoje</h6>
+                        <h2 class="mb-0">R$ {{ revenue_today|floatformat:2 }}</h2>
+                        <small>R$ {{ revenue_month|floatformat:2 }} este mês</small>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50 mb-1">Clientes Ativos</h6>
+                        <h2 class="mb-0">{{ active_customers }}</h2>
+                        <small>Total: {{ total_customers }}</small>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card bg-warning text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-dark-50 mb-1">Barbeiros</h6>
+                        <h2 class="mb-0">{{ total_barbers }}</h2>
+                        <small>{{ total_services }} serviços disponíveis</small>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Próximos agendamentos -->
+<!-- Gráficos -->
 <div class="row">
-    <div class="col-12">
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-line"></i> Faturamento Diário (Últimos 30 dias)
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-pie"></i> Distribuição de Status
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-bar"></i> Agendamentos por Dia da Semana
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="weekdayChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-crown"></i> Serviços Mais Vendidos
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Serviço</th>
+                                <th>Quantidade</th>
+                                <th>Receita</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in top_services %}
+                            <tr>
+                                <td>{{ service.service__name }}</td>
+                                <td>{{ service.total }}</td>
+                                <td>R$ {{ service.revenue|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">Nenhum dado disponível</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Próximos Agendamentos e Alertas -->
+<div class="row">
+    <div class="col-lg-7 mb-4">
         <div class="card">
             <div class="card-header">
                 <i class="fas fa-clock"></i> Próximos Agendamentos
             </div>
             <div class="card-body">
-                <div class="text-center text-muted py-5">
-                    <i class="fas fa-calendar-alt fa-3x mb-3"></i>
-                    <p>Nenhum agendamento próximo</p>
-                    <small>Agendamentos aparecerão aqui</small>
-                </div>
+                {% if upcoming_appointments %}
+                    {% for appointment in upcoming_appointments %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <div>
+                            <strong>{{ appointment.customer.full_name }}</strong>
+                            <br>
+                            <small class="text-muted">
+                                {{ appointment.service.name }} - {{ appointment.barber.full_name }}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-primary">{{ appointment.start_time|date:"d/m H:i" }}</span>
+                            <span class="badge bg-{% if appointment.status == 'confirmed' %}success{% else %}secondary{% endif %}">
+                                {{ appointment.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center text-muted py-3">Nenhum agendamento próximo</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-5 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-bell"></i> Alertas
+            </div>
+            <div class="card-body">
+                {% if alerts %}
+                    {% for alert in alerts %}
+                    <div class="alert-item bg-{% if alert.type == 'warning' %}warning{% else %}info{% endif %}-light">
+                        <i class="fas fa-{% if alert.type == 'warning' %}exclamation-triangle text-warning{% else %}info-circle text-info{% endif %}"></i>
+                        <span>{{ alert.message }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center text-muted py-3">Nenhum alerta no momento</p>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -111,7 +242,110 @@
 
 {% block extra_js %}
 <script>
-    // JavaScript para atualizar dados em tempo real (futuro)
-    console.log('Dashboard da Barbearia LS carregado!');
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Gráfico de Faturamento Diário
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    const revenueData = {{ daily_revenue|safe }};
+    
+    new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: revenueData.map(item => item.date),
+            datasets: [{
+                label: 'Faturamento (R$)',
+                data: revenueData.map(item => item.total),
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'R$ ' + value.toFixed(2);
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // 2. Gráfico de Status
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    const statusData = {{ status_counts|safe }};
+    
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(statusData),
+            datasets: [{
+                data: Object.values(statusData),
+                backgroundColor: [
+                    '#0d6efd',  // Agendado
+                    '#198754',  // Confirmado
+                    '#ffc107',  // Em Andamento
+                    '#28a745',  // Concluído
+                    '#dc3545',  // Cancelado
+                    '#6c757d'   // Não Compareceu
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // 3. Gráfico de Dias da Semana
+    const weekdayCtx = document.getElementById('weekdayChart').getContext('2d');
+    const weekdayLabels = {{ weekday_labels|safe }};
+    const weekdayCounts = {{ weekday_counts|safe }};
+    
+    new Chart(weekdayCtx, {
+        type: 'bar',
+        data: {
+            labels: weekdayLabels,
+            datasets: [{
+                label: 'Agendamentos',
+                data: weekdayCounts,
+                backgroundColor: '#0d6efd',
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+});
 </script>
 {% endblock %}

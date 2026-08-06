@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Financeiro{% endblock %}
+
+{% block page_title %}Dashboard Financeiro{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">Receitas</h5>
+                <h2>R$ 0,00</h2>
+                <small>Este mês</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h5 class="card-title">Despesas</h5>
+                <h2>R$ 0,00</h2>
+                <small>Este mês</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">Lucro</h5>
+                <h2>R$ 0,00</h2>
+                <small>Este mês</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">Caixa</h5>
+                <h2>R$ 0,00</h2>
+                <small>Saldo atual</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-bar"></i> Resumo Financeiro
+            </div>
+            <div class="card-body text-center text-muted py-5">
+                <i class="fas fa-chart-line fa-3x mb-3"></i>
+                <p>Gráficos financeiros serão exibidos aqui</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

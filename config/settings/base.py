@@ -35,14 +35,16 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     'apps.core',
     'apps.accounts',
-    # 'apps.barbers',      # Será adicionado no Módulo 3
-    # 'apps.customers',    # Será adicionado no Módulo 3
-    # 'apps.services',     # Será adicionado no Módulo 4
-    # 'apps.appointments', # Será adicionado no Módulo 4
-    # 'apps.finance',      # Será adicionado no Módulo 5
-    # 'apps.products',     # Será adicionado no Módulo 5
-    # 'apps.subscriptions',# Será adicionado no Módulo 6
-    # 'apps.reports',      # Será adicionado no Módulo 6
+    'apps.barbers',
+    'apps.customers',
+    'apps.services',
+    'apps.appointments',
+    'apps.finance',
+    'apps.products',
+    'apps.subscriptions',
+    'apps.reports',
+    'apps.client',
+    'apps.notifications',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -139,3 +141,14 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 # Messages
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+# Context Processors adicionais
+TEMPLATES[0]['OPTIONS']['context_processors'].append(
+    'apps.notifications.context_processors.notification_count'
+)
+LOGIN_URL = "accounts:login"
+
+# Login/Logout URLs
+LOGIN_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = 'core:home'
+LOGOUT_REDIRECT_URL = 'client:home'

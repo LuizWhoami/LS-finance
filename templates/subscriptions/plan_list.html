@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Planos de Assinatura{% endblock %}
+
+{% block page_title %}Planos de Assinatura{% endblock %}
+
+{% block page_actions %}
+<a href="#" class="btn btn-primary">
+    <i class="fas fa-plus"></i> Novo Plano
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    {% for plan in plans %}
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header text-center">
+                <h4>{{ plan.name }}</h4>
+                <h2>R$ {{ plan.price }}</h2>
+                <small>{{ plan.get_billing_cycle_display }}</small>
+            </div>
+            <div class="card-body">
+                <p>{{ plan.description|default:"Sem descrição" }}</p>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success"></i> {{ plan.free_services_per_month }} serviços grátis/mês</li>
+                    <li><i class="fas fa-check text-success"></i> {{ plan.discount_percentage }}% de desconto</li>
+                    {% if plan.priority_booking %}
+                    <li><i class="fas fa-check text-success"></i> Agendamento prioritário</li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="card-footer text-center">
+                <span class="badge bg-{% if plan.status == 'active' %}success{% else %}secondary{% endif %}">
+                    {{ plan.get_status_display }}
+                </span>
+                <span class="badge bg-info">{{ plan.total_subscribers }} assinantes</span>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center text-muted py-5">
+            <i class="fas fa-crown fa-3x mb-3"></i>
+            <p>Nenhum plano de assinatura cadastrado.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

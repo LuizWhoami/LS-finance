@@ -1,0 +1,581 @@
+/* ==========================================================================
+   Barbearia LS - Estilos do Cliente (Design Premium)
+   ========================================================================== */
+
+:root {
+    --primary: #1a1a2e;
+    --secondary: #16213e;
+    --accent: #e94560;
+    --gold: #f5c518;
+    --light: #f8f9fa;
+    --dark: #0f0f1a;
+    --gradient-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    --gradient-accent: linear-gradient(135deg, #e94560 0%, #c0392b 100%);
+    --shadow: 0 10px 40px rgba(0,0,0,0.15);
+    --shadow-hover: 0 20px 60px rgba(0,0,0,0.25);
+    --border-radius: 20px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f2f5;
+    color: #333;
+    padding-top: 70px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==========================================================================
+   NAVBAR
+   ========================================================================== */
+.navbar {
+    background: var(--gradient-primary) !important;
+    padding: 15px 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    border-bottom: 2px solid var(--accent);
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff !important;
+    letter-spacing: 1px;
+}
+
+.navbar-brand i {
+    color: var(--accent);
+    margin-right: 10px;
+}
+
+.navbar .nav-link {
+    color: rgba(255,255,255,0.8) !important;
+    font-weight: 500;
+    transition: all 0.3s;
+    padding: 8px 16px;
+    border-radius: 8px;
+}
+
+.navbar .nav-link:hover {
+    color: #fff !important;
+    background: rgba(255,255,255,0.1);
+}
+
+.navbar .nav-link i {
+    margin-right: 8px;
+}
+
+.navbar .btn-primary {
+    background: var(--gradient-accent);
+    border: none;
+    border-radius: 25px;
+    padding: 8px 25px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.navbar .btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+}
+
+/* ==========================================================================
+   HERO SECTION
+   ========================================================================== */
+.hero-section {
+    background: var(--gradient-primary);
+    color: white;
+    padding: 100px 0 80px;
+    margin-bottom: 50px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 0 0 50px 50px;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(233, 69, 96, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.hero-section::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -5%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(245, 197, 24, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.hero-section .container {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-section h1 {
+    font-size: 4rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+    letter-spacing: -1px;
+}
+
+.hero-section h1 span {
+    color: var(--gold);
+}
+
+.hero-section .lead {
+    font-size: 1.3rem;
+    opacity: 0.9;
+    margin-bottom: 30px;
+}
+
+.hero-section .btn-hero {
+    background: var(--gradient-accent);
+    color: white;
+    border: none;
+    padding: 15px 45px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border-radius: 50px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 20px rgba(233, 69, 96, 0.4);
+}
+
+.hero-section .btn-hero:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(233, 69, 96, 0.6);
+}
+
+/* ==========================================================================
+   CARDS DE SERVIÇOS
+   ========================================================================== */
+.service-card {
+    background: white;
+    border: none;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: var(--shadow);
+    height: 100%;
+    position: relative;
+}
+
+.service-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-hover);
+}
+
+.service-card .card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+.service-card .card-body {
+    padding: 25px;
+}
+
+.service-card .price-tag {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: var(--gradient-accent);
+    color: white;
+    padding: 8px 18px;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
+}
+
+.service-card .card-title {
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.service-card .card-text {
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.service-card .badge {
+    background: var(--primary) !important;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.service-card .btn-primary {
+    background: var(--gradient-accent);
+    border: none;
+    border-radius: 25px;
+    padding: 8px 25px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.service-card .btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+}
+
+/* ==========================================================================
+   CARDS DE BARBEIROS
+   ========================================================================== */
+.barber-card {
+    background: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 25px 15px;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: var(--shadow);
+    height: 100%;
+}
+
+.barber-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-hover);
+}
+
+.barber-card .avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0 auto 15px;
+    border: 4px solid var(--accent);
+    padding: 3px;
+    background: #fff;
+}
+
+.barber-card .avatar i {
+    font-size: 3rem;
+    color: #999;
+}
+
+.barber-card h6 {
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.barber-card .text-muted {
+    font-size: 0.85rem;
+}
+
+.barber-card .rating {
+    color: var(--gold);
+    font-size: 1.1rem;
+    margin: 8px 0;
+}
+
+.barber-card .btn-primary {
+    background: var(--gradient-accent);
+    border: none;
+    border-radius: 25px;
+    padding: 6px 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.barber-card .btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+}
+
+/* ==========================================================================
+   FORMULÁRIOS
+   ========================================================================== */
+.form-card {
+    background: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 35px;
+    box-shadow: var(--shadow);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-card .card-header {
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    padding: 20px 30px;
+    margin: -35px -35px 25px -35px;
+    text-align: center;
+}
+
+.form-card .card-header h4 {
+    margin: 0;
+    font-weight: 700;
+}
+
+.form-card .form-control,
+.form-card .form-select {
+    border-radius: 12px;
+    padding: 12px 18px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s;
+    font-size: 1rem;
+}
+
+.form-card .form-control:focus,
+.form-card .form-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.15);
+}
+
+.form-card .btn-submit {
+    background: var(--gradient-accent);
+    border: none;
+    border-radius: 50px;
+    padding: 14px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    transition: all 0.3s;
+}
+
+.form-card .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(233, 69, 96, 0.4);
+}
+
+/* ==========================================================================
+   AGENDAMENTOS
+   ========================================================================== */
+.appointment-card {
+    background: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 20px 25px;
+    margin-bottom: 15px;
+    box-shadow: var(--shadow);
+    transition: all 0.3s;
+    border-left: 5px solid var(--primary);
+}
+
+.appointment-card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateX(5px);
+}
+
+.appointment-card.status-completed {
+    border-left-color: #28a745;
+}
+
+.appointment-card.status-cancelled {
+    border-left-color: #dc3545;
+    opacity: 0.7;
+}
+
+.appointment-card.status-scheduled {
+    border-left-color: var(--gold);
+}
+
+.appointment-card.status-confirmed {
+    border-left-color: #0d6efd;
+}
+
+.appointment-card.status-in_progress {
+    border-left-color: #fd7e14;
+}
+
+.appointment-card .badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   DEPOIMENTOS
+   ========================================================================== */
+.testimonial-card {
+    background: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 30px;
+    box-shadow: var(--shadow);
+    transition: all 0.3s;
+    position: relative;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-hover);
+}
+
+.testimonial-card::before {
+    content: '\201C';
+    font-size: 4rem;
+    color: var(--accent);
+    opacity: 0.2;
+    position: absolute;
+    top: 10px;
+    left: 20px;
+}
+
+.testimonial-card p {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    position: relative;
+    z-index: 1;
+}
+
+.testimonial-card .text-muted {
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+.footer {
+    background: var(--gradient-primary) !important;
+    color: white;
+    padding: 30px 0;
+    margin-top: auto;
+    border-top: 2px solid var(--accent);
+}
+
+.footer .text-muted {
+    color: rgba(255,255,255,0.6) !important;
+}
+
+.footer i {
+    color: var(--accent);
+    margin-right: 5px;
+}
+
+/* ==========================================================================
+   RESPONSIVO
+   ========================================================================== */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 60px 0 50px;
+    }
+    
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+    
+    .hero-section .lead {
+        font-size: 1rem;
+    }
+    
+    .hero-section .btn-hero {
+        padding: 12px 30px;
+        font-size: 1rem;
+    }
+    
+    .service-card .card-img-top {
+        height: 150px;
+    }
+    
+    .barber-card .avatar {
+        width: 90px;
+        height: 90px;
+    }
+    
+    .form-card {
+        padding: 25px;
+        margin: 0 15px;
+    }
+    
+    .form-card .card-header {
+        margin: -25px -25px 20px -25px;
+        padding: 15px 20px;
+    }
+}
+
+/* ==========================================================================
+   ANIMAÇÕES
+   ========================================================================== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* ==========================================================================
+   MISC
+   ========================================================================== */
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 15px;
+    position: relative;
+    display: inline-block;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: var(--gradient-accent);
+    border-radius: 2px;
+}
+
+.text-gradient {
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.bg-gradient-primary {
+    background: var(--gradient-primary) !important;
+}
+
+.btn-outline-accent {
+    color: var(--accent);
+    border: 2px solid var(--accent);
+    border-radius: 50px;
+    padding: 10px 30px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-outline-accent:hover {
+    background: var(--accent);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
+}

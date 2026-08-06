@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ customer.full_name }}{% endblock %}
+
+{% block breadcrumb_items %}
+<li class="breadcrumb-item"><a href="{% url 'customers:list' %}">Clientes</a></li>
+<li class="breadcrumb-item active">{{ customer.full_name }}</li>
+{% endblock %}
+
+{% block page_title %}{{ customer.full_name }}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'customers:edit' customer.pk %}" class="btn btn-warning">
+    <i class="fas fa-edit"></i> Editar
+</a>
+<a href="{% url 'customers:delete' customer.pk %}" class="btn btn-danger">
+    <i class="fas fa-trash"></i> Excluir
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-user"></i> Informações Pessoais
+            </div>
+            <div class="card-body">
+                <p><strong>Nome:</strong> {{ customer.full_name }}</p>
+                <p><strong>CPF:</strong> {{ customer.formatted_cpf|default:"-" }}</p>
+                <p><strong>Telefone:</strong> {{ customer.formatted_phone }}</p>
+                <p><strong>Email:</strong> {{ customer.email|default:"-" }}</p>
+                <p><strong>Data Nasc.:</strong> {{ customer.birth_date|date:"d/m/Y"|default:"-" }}</p>
+                <p><strong>Idade:</strong> {{ customer.age|default:"-" }}</p>
+                <p><strong>Status:</strong>
+                    {% if customer.status == 'active' %}
+                    <span class="badge bg-success">Ativo</span>
+                    {% elif customer.status == 'inactive' %}
+                    <span class="badge bg-warning">Inativo</span>
+                    {% else %}
+                    <span class="badge bg-danger">Bloqueado</span>
+                    {% endif %}
+                </p>
+                <p><strong>Usuário:</strong> {{ customer.user|default:"Não cadastrado" }}</p>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <i class="fas fa-map-marker-alt"></i> Endereço
+            </div>
+            <div class="card-body">
+                <p>{{ customer.address|default:"-" }}</p>
+                <p>{{ customer.city|default:"-" }} - {{ customer.state|default:"-" }}</p>
+                <p>CEP: {{ customer.zip_code|default:"-" }}</p>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <i class="fas fa-star"></i> Fidelidade
+            </div>
+            <div class="card-body text-center">
+                <h2 class="display-4">{{ customer.loyalty_points }}</h2>
+                <p class="text-muted">Pontos acumulados</p>
+                <p><strong>Total de visitas:</strong> {{ customer.total_visits }}</p>
+                <p><strong>Última visita:</strong> {{ customer.last_visit|date:"d/m/Y H:i"|default:"-" }}</p>
+                <p><strong>Barbeiro preferido:</strong> {{ customer.preferred_barber|default:"-" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <!-- Agendamentos -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-calendar-check"></i> Últimos Agendamentos
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Serviço</th>
+                                <th>Barbeiro</th>
+                                <th>Status</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appt in appointments %}
+                            <tr>
+                                <td>{{ appt.start_time|date:"d/m/Y H:i" }}</td>
+                                <td>{{ appt.service.name }}</td>
+                                <td>{{ appt.barber }}</td>
+                                <td>
+                                    <span class="badge bg-{% if appt.status == 'completed' %}success{% elif appt.status == 'cancelled' %}danger{% elif appt.status == 'scheduled' %}primary{% else %}secondary{% endif %}">
+                                        {{ appt.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>R$ {{ appt.final_price }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">Nenhum agendamento encontrado.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Histórico -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <i class="fas fa-history"></i> Histórico de Atividades
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for item in history %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-info">{{ item.get_type_display }}</span>
+                                <span class="ms-2">{{ item.description }}</span>
+                            </div>
+                            <small class="text-muted">{{ item.created_at|date:"d/m/Y H:i" }}</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">Nenhuma atividade registrada.</p>
+                    {% endfor %}
+                </div>
+                <div class="mt-2">
+                    <a href="{% url 'customers:history' customer.pk %}" class="btn btn-sm btn-outline-primary">
+                        Ver todo histórico
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

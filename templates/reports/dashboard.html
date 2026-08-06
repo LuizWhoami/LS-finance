@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Relatórios{% endblock %}
+
+{% block page_title %}Relatórios Gerenciais{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-pie fa-3x text-primary mb-3"></i>
+                <h5>Relatório Financeiro</h5>
+                <p class="text-muted">Análise de receitas, despesas e lucros</p>
+                <a href="#" class="btn btn-primary btn-sm">Acessar</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-calendar-alt fa-3x text-success mb-3"></i>
+                <h5>Relatório de Agendamentos</h5>
+                <p class="text-muted">Análise de agendamentos por período</p>
+                <a href="#" class="btn btn-primary btn-sm">Acessar</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-3x text-info mb-3"></i>
+                <h5>Relatório de Clientes</h5>
+                <p class="text-muted">Análise de clientes e fidelidade</p>
+                <a href="#" class="btn btn-primary btn-sm">Acessar</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends 'client/base.html' %}
+{% load static %}
+
+{% block title %}Cadastro{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card form-card">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-plus"></i> Criar Conta
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="username" class="form-label">
+                                <i class="fas fa-user"></i> Usuário
+                            </label>
+                            <input type="text" name="username" id="username" class="form-control" required>
+                            <small class="text-muted">Nome de usuário único</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="first_name" class="form-label">
+                                <i class="fas fa-user"></i> Nome
+                            </label>
+                            <input type="text" name="first_name" id="first_name" class="form-control" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">
+                                <i class="fas fa-user"></i> Sobrenome
+                            </label>
+                            <input type="text" name="last_name" id="last_name" class="form-control" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope"></i> Email
+                            </label>
+                            <input type="email" name="email" id="email" class="form-control" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">
+                                <i class="fas fa-phone"></i> Telefone
+                            </label>
+                            <input type="tel" name="phone" id="phone" class="form-control" 
+                                   placeholder="(11) 99999-9999" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password1" class="form-label">
+                                <i class="fas fa-lock"></i> Senha
+                            </label>
+                            <input type="password" name="password1" id="password1" class="form-control" required>
+                            <small class="text-muted">Mínimo de 8 caracteres</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password2" class="form-label">
+                                <i class="fas fa-lock"></i> Confirmar Senha
+                            </label>
+                            <input type="password" name="password2" id="password2" class="form-control" required>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-submit">
+                                <i class="fas fa-user-plus"></i> Cadastrar
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <hr>
+                    
+                    <div class="text-center">
+                        <p class="mb-0">Já tem uma conta?</p>
+                        <a href="{% url 'client:login' %}" class="btn btn-outline-primary btn-sm mt-2">
+                            <i class="fas fa-sign-in-alt"></i> Fazer Login
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const phoneInput = document.getElementById('phone');
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length <= 11) {
+                    if (value.length <= 2) {
+                        value = value.replace(/^(\d{0,2})/, '($1');
+                    } else if (value.length <= 6) {
+                        value = value.replace(/^(\d{2})(\d{0,4})/, '($1) $2');
+                    } else {
+                        value = value.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+                    }
+                    e.target.value = value;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

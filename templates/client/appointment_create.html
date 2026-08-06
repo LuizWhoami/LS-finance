@@ -1,0 +1,196 @@
+{% extends 'client/base.html' %}
+{% load static %}
+
+{% block title %}Agendar Serviço{% endblock %}
+
+{% block extra_css %}
+<style>
+    .appointment-form-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .datetime-row {
+        display: flex;
+        gap: 15px;
+    }
+    
+    .datetime-row .col-date {
+        flex: 1;
+    }
+    
+    .datetime-row .col-time {
+        flex: 1;
+    }
+    
+    @media (max-width: 576px) {
+        .datetime-row {
+            flex-direction: column;
+            gap: 10px;
+        }
+    }
+    
+    .form-info-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: none;
+        border-radius: var(--border-radius);
+        padding: 20px 25px;
+    }
+    
+    .form-info-card ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+    
+    .form-info-card ul li {
+        margin-bottom: 5px;
+        color: #555;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="appointment-form-container">
+        <div class="card form-card">
+            <div class="card-header">
+                <h4>
+                    <i class="fas fa-calendar-plus"></i> Agendar Serviço
+                </h4>
+                <p class="mb-0 small opacity-75">Preencha os dados abaixo para agendar seu horário</p>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.customer_name.id_for_label }}" class="form-label">
+                            <i class="fas fa-user text-gradient"></i> Seu Nome
+                        </label>
+                        {{ form.customer_name }}
+                        {% if form.customer_name.errors %}
+                        <div class="text-danger small">{{ form.customer_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.customer_phone.id_for_label }}" class="form-label">
+                            <i class="fas fa-phone text-gradient"></i> Seu Telefone
+                        </label>
+                        {{ form.customer_phone }}
+                        {% if form.customer_phone.errors %}
+                        <div class="text-danger small">{{ form.customer_phone.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.service.id_for_label }}" class="form-label">
+                            <i class="fas fa-cut text-gradient"></i> Serviço
+                        </label>
+                        {{ form.service }}
+                        {% if form.service.errors %}
+                        <div class="text-danger small">{{ form.service.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted d-block mt-1">A duração do serviço será calculada automaticamente</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.barber.id_for_label }}" class="form-label">
+                            <i class="fas fa-user-tie text-gradient"></i> Barbeiro
+                        </label>
+                        {{ form.barber }}
+                        {% if form.barber.errors %}
+                        <div class="text-danger small">{{ form.barber.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-clock text-gradient"></i> Data e Hora
+                        </label>
+                        <div class="datetime-row">
+                            <div class="col-date">
+                                {{ form.appointment_date }}
+                                {% if form.appointment_date.errors %}
+                                <div class="text-danger small">{{ form.appointment_date.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-time">
+                                {{ form.appointment_time }}
+                                {% if form.appointment_time.errors %}
+                                <div class="text-danger small">{{ form.appointment_time.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <small class="text-muted d-block mt-1">Horário de funcionamento: 08:00 às 20:00</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">
+                            <i class="fas fa-sticky-note text-gradient"></i> Observações
+                        </label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                        <div class="text-danger small">{{ form.notes.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-submit">
+                            <i class="fas fa-check"></i> Confirmar Agendamento
+                        </button>
+                        <a href="{% url 'client:home' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="form-info-card mt-3">
+            <h6><i class="fas fa-info-circle text-gradient"></i> Informações importantes</h6>
+            <ul>
+                <li>Chegue com 10 minutos de antecedência</li>
+                <li>Cancelamentos devem ser feitos com 2 horas de antecedência</li>
+                <li>Em caso de atraso, entre em contato</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Máscara para telefone
+        const phoneInput = document.querySelector('#{{ form.customer_phone.id_for_label }}');
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length <= 11) {
+                    if (value.length <= 2) {
+                        value = value.replace(/^(\d{0,2})/, '($1');
+                    } else if (value.length <= 6) {
+                        value = value.replace(/^(\d{2})(\d{0,4})/, '($1) $2');
+                    } else {
+                        value = value.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+                    }
+                    e.target.value = value;
+                }
+            });
+        }
+        
+        const timeInput = document.querySelector('#{{ form.appointment_time.id_for_label }}');
+        if (timeInput) {
+            timeInput.setAttribute('min', '08:00');
+            timeInput.setAttribute('max', '20:00');
+        }
+    });
+</script>
+{% endblock %}
