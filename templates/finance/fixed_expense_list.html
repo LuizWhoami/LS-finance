@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gastos Fixos{% endblock %}
+
+{% block page_title %}Gastos Fixos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .expense-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    .expense-summary .summary-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border-left: 4px solid #0d6efd;
+        transition: transform 0.2s;
+    }
+    .expense-summary .summary-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .expense-summary .summary-card .number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #1a1a2e;
+    }
+    .expense-summary .summary-card .label {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    .expense-summary .summary-card .icon {
+        font-size: 1.5rem;
+        opacity: 0.5;
+        float: right;
+    }
+    
+    .expense-category-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .expense-category-item {
+        background: white;
+        border-radius: 10px;
+        padding: 12px 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-left: 3px solid #e9ecef;
+        transition: all 0.2s;
+    }
+    .expense-category-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    .expense-category-item .cat-name {
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    .expense-category-item .cat-value {
+        font-weight: 700;
+        color: #dc3545;
+        font-size: 0.95rem;
+    }
+    .expense-category-item .cat-count {
+        font-size: 0.7rem;
+        color: #6c757d;
+        background: #f8f9fa;
+        padding: 1px 8px;
+        border-radius: 10px;
+        margin-left: 5px;
+    }
+    
+    .expense-table .table {
+        margin-bottom: 0;
+    }
+    .expense-table .table th {
+        background: #f8f9fa;
+        border-bottom: 2px solid #e9ecef;
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #495057;
+    }
+    .expense-table .table td {
+        vertical-align: middle;
+    }
+    .expense-table .badge-category {
+        font-size: 0.7rem;
+        padding: 4px 12px;
+        border-radius: 12px;
+    }
+    
+    .btn-action {
+        padding: 4px 10px;
+        font-size: 0.8rem;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    .btn-action:hover {
+        transform: scale(1.05);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+    }
+    .empty-state i {
+        font-size: 3rem;
+        color: #ddd;
+        margin-bottom: 15px;
+    }
+    
+    @media (max-width: 768px) {
+        .expense-summary {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .expense-category-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'finance:fixed_expense_add' %}" class="btn btn-primary">
+    <i class="fas fa-plus"></i> Novo Gasto Fixo
+</a>
+<a href="{% url 'finance:dashboard' %}" class="btn btn-outline-secondary">
+    <i class="fas fa-arrow-left"></i> Voltar
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Cards de Resumo -->
+<div class="expense-summary">
+    <div class="summary-card" style="border-left-color: #0d6efd;">
+        <div class="icon"><i class="fas fa-coins"></i></div>
+        <div class="number">R$ {{ total_expenses|floatformat:2 }}</div>
+        <div class="label">Total de Gastos</div>
+    </div>
+    <div class="summary-card" style="border-left-color: #28a745;">
+        <div class="icon"><i class="fas fa-list"></i></div>
+        <div class="number">{{ total_count }}</div>
+        <div class="label">Total de Gastos</div>
+    </div>
+    <div class="summary-card" style="border-left-color: #ffc107;">
+        <div class="icon"><i class="fas fa-tags"></i></div>
+        <div class="number">{{ expenses_by_category|length }}</div>
+        <div class="label">Categorias</div>
+    </div>
+    <div class="summary-card" style="border-left-color: #dc3545;">
+        <div class="icon"><i class="fas fa-calendar"></i></div>
+        <div class="number">{{ total_count|default:0 }}</div>
+        <div class="label">Gastos Ativos</div>
+    </div>
+</div>
+
+<!-- Gastos por Categoria -->
+{% if expenses_by_category %}
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-chart-pie"></i> Gastos por Categoria
+    </div>
+    <div class="card-body">
+        <div class="expense-category-grid">
+            {% for category in expenses_by_category %}
+            <div class="expense-category-item">
+                <div>
+                    <span class="cat-name">{{ category.category_name }}</span>
+                    <span class="cat-count">{{ category.count }} itens</span>
+                </div>
+                <span class="cat-value">R$ {{ category.total|floatformat:2 }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Lista de Gastos -->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-list"></i> Todos os Gastos Fixos
+        <span class="badge bg-primary float-end">{{ total_count }} gastos</span>
+    </div>
+    <div class="card-body expense-table">
+        <!-- Filtros -->
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-md-4">
+                <select name="category" class="form-select form-select-sm">
+                    <option value="">Todas categorias</option>
+                    {% for value, label in categories %}
+                    <option value="{{ value }}" {% if request.GET.category == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100">
+                    <i class="fas fa-search"></i> Filtrar
+                </button>
+            </div>
+            <div class="col-md-6 text-end">
+                <small class="text-muted">Total: <strong>R$ {{ total_expenses|floatformat:2 }}</strong></small>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Categoria</th>
+                        <th>Valor</th>
+                        <th>Frequência</th>
+                        <th>Próxima Cobrança</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in expenses %}
+                    <tr>
+                        <td><strong>{{ expense.name }}</strong></td>
+                        <td>
+                            <span class="badge-category bg-{% if expense.category == 'rent' %}primary{% elif expense.category == 'salary' %}success{% elif expense.category == 'water' or expense.category == 'electricity' %}info{% elif expense.category == 'internet' %}warning{% elif expense.category == 'supplies' %}secondary{% else %}secondary{% endif %} text-white">
+                                {{ expense.get_category_display }}
+                            </span>
+                        </td>
+                        <td class="fw-bold text-danger">R$ {{ expense.amount|floatformat:2 }}</td>
+                        <td>{{ expense.get_frequency_display }}</td>
+                        <td>{{ expense.next_charge|date:"d/m/Y"|default:"-" }}</td>
+                        <td>
+                            {% if expense.is_active %}
+                            <span class="badge bg-success">Ativo</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inativo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'finance:fixed_expense_charge' expense.pk %}" 
+                                   class="btn btn-success btn-action" 
+                                   title="Cobrar"
+                                   onclick="return confirm('Deseja cobrar este gasto agora?')">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </a>
+                                <a href="{% url 'finance:fixed_expense_edit' expense.pk %}" 
+                                   class="btn btn-warning btn-action" 
+                                   title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'finance:fixed_expense_delete' expense.pk %}" 
+                                   class="btn btn-danger btn-action" 
+                                   title="Excluir"
+                                   onclick="return confirm('Tem certeza que deseja excluir este gasto?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <i class="fas fa-dollar-sign"></i>
+                                <h5>Nenhum gasto fixo cadastrado</h5>
+                                <p class="text-muted">Adicione seus gastos fixos para ter um controle financeiro completo.</p>
+                                <a href="{% url 'finance:fixed_expense_add' %}" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Adicionar Gasto Fixo
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% include 'includes/_pagination.html' %}
+    </div>
+</div>
+{% endblock %}

@@ -3,20 +3,19 @@ Views para o app Appointments.
 """
 
 from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, View
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
 from django.utils import timezone
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 
 from .models import Appointment
 from .forms import AppointmentForm
 
 
 class AppointmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    """Lista de agendamentos."""
     model = Appointment
     template_name = 'appointments/appointment_list.html'
     context_object_name = 'appointments'
@@ -27,6 +26,7 @@ class AppointmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
         queryset = super().get_queryset().select_related(
             'customer', 'barber', 'barber__user', 'service'
         )
+        queryset = queryset.filter(is_active=True)
         
         status = self.request.GET.get('status')
         if status:
@@ -50,7 +50,6 @@ class AppointmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
 
 
 class AppointmentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
-    """Cria um novo agendamento."""
     model = Appointment
     form_class = AppointmentForm
     template_name = 'appointments/appointment_form.html'
@@ -63,7 +62,6 @@ class AppointmentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateV
 
 
 class AppointmentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    """Edita um agendamento."""
     model = Appointment
     form_class = AppointmentForm
     template_name = 'appointments/appointment_form.html'
@@ -76,19 +74,31 @@ class AppointmentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateV
 
 
 class AppointmentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
-    """Remove um agendamento."""
     model = Appointment
     template_name = 'appointments/appointment_confirm_delete.html'
     permission_required = 'appointments.delete_appointment'
     success_url = reverse_lazy('appointments:list')
 
     def delete(self, request, *args, **kwargs):
-        messages.success(request, _('Agendamento removido com sucesso!'))
-        return super().delete(request, *args, **kwargs)
+        appointment = self.get_object()
+        
+        # Verificar se tem transações vinculadas
+        from apps.finance.models import Transaction
+        transactions = Transaction.objects.filter(appointment=appointment)
+        
+        if transactions.exists():
+            transactions.update(appointment=None)
+            messages.warning(request, f'Agendamento tinha {transactions.count()} transações que foram desvinculadas.')
+        
+        # Soft delete
+        appointment.is_active = False
+        appointment.save(update_fields=['is_active', 'updated_at'])
+        
+        messages.success(request, _('Agendamento cancelado com sucesso!'))
+        return redirect(self.success_url)
 
 
 class AppointmentDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
-    """Detalhes de um agendamento."""
     model = Appointment
     template_name = 'appointments/appointment_detail.html'
     context_object_name = 'appointment'
@@ -96,7 +106,6 @@ class AppointmentDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailV
 
 
 class AppointmentConfirmView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
-    """Confirma um agendamento."""
     model = Appointment
     template_name = 'appointments/appointment_confirm.html'
     permission_required = 'appointments.change_appointment'
@@ -112,7 +121,6 @@ class AppointmentConfirmView(LoginRequiredMixin, PermissionRequiredMixin, Detail
 
 
 class AppointmentCancelView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
-    """Cancela um agendamento."""
     model = Appointment
     template_name = 'appointments/appointment_cancel.html'
     permission_required = 'appointments.change_appointment'
@@ -129,7 +137,6 @@ class AppointmentCancelView(LoginRequiredMixin, PermissionRequiredMixin, DetailV
 
 
 class AppointmentCalendarView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    """Calendário de agendamentos."""
     model = Appointment
     template_name = 'appointments/appointment_calendar.html'
     context_object_name = 'appointments'
@@ -140,9 +147,162 @@ class AppointmentCalendarView(LoginRequiredMixin, PermissionRequiredMixin, ListV
         start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         return Appointment.objects.filter(
             start_time__gte=start,
+            is_active=True,
             status__in=[
                 Appointment.AppointmentStatus.SCHEDULED,
                 Appointment.AppointmentStatus.CONFIRMED,
                 Appointment.AppointmentStatus.IN_PROGRESS
             ]
         ).select_related('customer', 'barber', 'service')
+
+class QuickStatusUpdateView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    """View para atualização rápida de status via POST."""
+    permission_required = 'appointments.change_appointment'
+
+    def post(self, request, pk, status):
+        appointment = get_object_or_404(Appointment, pk=pk)
+        
+        # Validar se o status é válido
+        valid_statuses = [choice[0] for choice in Appointment.AppointmentStatus.choices]
+        if status not in valid_statuses:
+            messages.error(request, _('Status inválido.'))
+            return redirect('appointments:list')
+        
+        try:
+            # Atualizar status
+            appointment.status = status
+            
+            # Se for concluído, registrar conclusão
+            if status == Appointment.AppointmentStatus.COMPLETED:
+                appointment.completed_at = timezone.now()
+                # Atualizar métricas
+                appointment.customer.increment_visits()
+                appointment.barber.increment_services()
+                appointment.service.increment_performed()
+                appointment.barber.update_rating()
+                
+                # Criar transação financeira
+                from apps.finance.models import Transaction
+                Transaction.objects.create(
+                    appointment=appointment,
+                    customer=appointment.customer,
+                    barber=appointment.barber,
+                    transaction_type=Transaction.TransactionType.INCOME,
+                    payment_method=Transaction.PaymentMethod.CASH,
+                    amount=appointment.final_price,
+                    description=f'Serviço: {appointment.service.name} - Cliente: {appointment.customer.full_name}',
+                    transaction_date=timezone.now(),
+                    commission_amount=appointment.commission_amount,
+                    commission_paid=False
+                )
+                
+                # Criar comissão
+                from apps.finance.models import Commission
+                Commission.objects.create(
+                    barber=appointment.barber,
+                    appointment=appointment,
+                    amount=appointment.commission_amount,
+                    percentage=appointment.barber.commission_percentage,
+                    status=Commission.CommissionStatus.PENDING,
+                    period_start=timezone.now().date(),
+                    period_end=timezone.now().date()
+                )
+                
+                messages.success(request, _('Agendamento concluído com sucesso! Transações e comissões geradas.'))
+            
+            elif status == Appointment.AppointmentStatus.CANCELLED:
+                appointment.cancelled_at = timezone.now()
+                appointment.cancellation_reason = 'Cancelado pelo administrador'
+                messages.success(request, _('Agendamento cancelado com sucesso!'))
+            
+            elif status == Appointment.AppointmentStatus.CONFIRMED:
+                messages.success(request, _('Agendamento confirmado com sucesso!'))
+            
+            elif status == Appointment.AppointmentStatus.IN_PROGRESS:
+                messages.success(request, _('Agendamento marcado como em andamento!'))
+            
+            elif status == Appointment.AppointmentStatus.NO_SHOW:
+                messages.success(request, _('Cliente marcado como não compareceu!'))
+            
+            elif status == Appointment.AppointmentStatus.SCHEDULED:
+                messages.success(request, _('Agendamento marcado como agendado!'))
+            
+            appointment.save()
+            
+        except Exception as e:
+            messages.error(request, f'Erro ao atualizar status: {str(e)}')
+        
+        return redirect('appointments:list')
+
+class QuickStatusUpdateView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    """View para atualização rápida de status via POST."""
+    permission_required = 'appointments.change_appointment'
+
+    def post(self, request, pk, status):
+        appointment = get_object_or_404(Appointment, pk=pk)
+        
+        valid_statuses = [choice[0] for choice in Appointment.AppointmentStatus.choices]
+        if status not in valid_statuses:
+            messages.error(request, _('Status inválido.'))
+            return redirect('appointments:list')
+        
+        try:
+            appointment.status = status
+            
+            if status == Appointment.AppointmentStatus.COMPLETED:
+                appointment.completed_at = timezone.now()
+                appointment.customer.increment_visits()
+                appointment.barber.increment_services()
+                appointment.service.increment_performed()
+                appointment.barber.update_rating()
+                
+                from apps.finance.models import Transaction
+                Transaction.objects.create(
+                    appointment=appointment,
+                    customer=appointment.customer,
+                    barber=appointment.barber,
+                    transaction_type=Transaction.TransactionType.INCOME,
+                    payment_method=Transaction.PaymentMethod.CASH,
+                    amount=appointment.final_price,
+                    description=f'Serviço: {appointment.service.name} - Cliente: {appointment.customer.full_name}',
+                    transaction_date=timezone.now(),
+                    commission_amount=appointment.commission_amount,
+                    commission_paid=False
+                )
+                
+                from apps.finance.models import Commission
+                Commission.objects.create(
+                    barber=appointment.barber,
+                    appointment=appointment,
+                    amount=appointment.commission_amount,
+                    percentage=appointment.barber.commission_percentage,
+                    status=Commission.CommissionStatus.PENDING,
+                    period_start=timezone.now().date(),
+                    period_end=timezone.now().date()
+                )
+                
+                messages.success(request, _('Agendamento concluído com sucesso! Transações e comissões geradas.'))
+            
+            elif status == Appointment.AppointmentStatus.CANCELLED:
+                appointment.cancelled_at = timezone.now()
+                appointment.cancellation_reason = 'Cancelado pelo administrador'
+                messages.success(request, _('Agendamento cancelado com sucesso!'))
+            
+            elif status == Appointment.AppointmentStatus.CONFIRMED:
+                messages.success(request, _('Agendamento confirmado com sucesso!'))
+            
+            elif status == Appointment.AppointmentStatus.IN_PROGRESS:
+                messages.success(request, _('Agendamento marcado como em andamento!'))
+            
+            elif status == Appointment.AppointmentStatus.NO_SHOW:
+                messages.success(request, _('Cliente marcado como não compareceu!'))
+            
+            elif status == Appointment.AppointmentStatus.SCHEDULED:
+                messages.success(request, _('Agendamento marcado como agendado!'))
+            
+            appointment.save()
+            
+        except Exception as e:
+            messages.error(request, f'Erro ao atualizar status: {str(e)}')
+        
+        return redirect('appointments:list')

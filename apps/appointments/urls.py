@@ -9,4 +9,5 @@ urlpatterns = [
     path('<int:pk>/', views.AppointmentDetailView.as_view(), name='detail'),
     path('<int:pk>/editar/', views.AppointmentUpdateView.as_view(), name='edit'),
     path('<int:pk>/excluir/', views.AppointmentDeleteView.as_view(), name='delete'),
+    path('quick-status/<int:pk>/<str:status>/', views.QuickStatusUpdateView.as_view(), name='quick_status'),
 ]

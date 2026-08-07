@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Lucro por Barbeiro{% endblock %}
+
+{% block page_title %}Lucro por Barbeiro{% endblock %}
+
+{% block extra_css %}
+<style>
+    .barber-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    .barber-summary .summary-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border-left: 4px solid #0d6efd;
+        transition: transform 0.2s;
+    }
+    .barber-summary .summary-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .barber-summary .summary-card .number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #1a1a2e;
+    }
+    .barber-summary .summary-card .label {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    .barber-summary .summary-card .icon {
+        font-size: 1.5rem;
+        opacity: 0.5;
+        float: right;
+    }
+    
+    .barber-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        transition: all 0.3s;
+        height: 100%;
+        border: 1px solid #f0f2f5;
+    }
+    .barber-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        border-color: transparent;
+    }
+    .barber-card .barber-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        margin: 0 auto 12px;
+    }
+    .barber-card .barber-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 2px;
+    }
+    .barber-card .barber-specialty {
+        font-size: 0.8rem;
+        color: #6c757d;
+        text-align: center;
+        margin-bottom: 12px;
+    }
+    .barber-card .barber-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    .barber-card .barber-stats .stat-item {
+        text-align: center;
+        padding: 8px;
+        border-radius: 8px;
+        background: #f8f9fa;
+    }
+    .barber-card .barber-stats .stat-item .stat-number {
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    .barber-card .barber-stats .stat-item .stat-label {
+        font-size: 0.65rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .barber-card .barber-stats .stat-item.profit {
+        background: #d4edda;
+    }
+    .barber-card .barber-stats .stat-item.profit .stat-number {
+        color: #28a745;
+    }
+    .barber-card .barber-stats .stat-item.revenue {
+        background: #cce5ff;
+    }
+    .barber-card .barber-stats .stat-item.revenue .stat-number {
+        color: #0d6efd;
+    }
+    .barber-card .barber-stats .stat-item.commission {
+        background: #fff3cd;
+    }
+    .barber-card .barber-stats .stat-item.commission .stat-number {
+        color: #ffc107;
+    }
+    
+    .rating-stars {
+        color: #ffc107;
+        font-size: 0.9rem;
+    }
+    
+    .progress-custom {
+        height: 6px;
+        border-radius: 3px;
+        background: #e9ecef;
+        margin-top: 8px;
+    }
+    .progress-custom .progress-bar-custom {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 1s ease;
+    }
+    
+    @media (max-width: 768px) {
+        .barber-summary {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .barber-card .barber-stats {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group">
+    <a href="?period=today" class="btn btn-outline-secondary {% if period == 'today' %}active{% endif %}">
+        <i class="fas fa-calendar-day"></i> Hoje
+    </a>
+    <a href="?period=week" class="btn btn-outline-secondary {% if period == 'week' %}active{% endif %}">
+        <i class="fas fa-calendar-week"></i> Semana
+    </a>
+    <a href="?period=month" class="btn btn-outline-secondary {% if period == 'month' %}active{% endif %}">
+        <i class="fas fa-calendar-alt"></i> Mês
+    </a>
+</div>
+<a href="{% url 'finance:dashboard' %}" class="btn btn-outline-secondary">
+    <i class="fas fa-arrow-left"></i> Voltar
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Cards de Resumo -->
+<div class="barber-summary">
+    <div class="summary-card" style="border-left-color: #0d6efd;">
+        <div class="icon"><i class="fas fa-user-tie"></i></div>
+        <div class="number">{{ barber_data|length }}</div>
+        <div class="label">Total de Barbeiros</div>
+    </div>
+    <div class="summary-card" style="border-left-color: #28a745;">
+        <div class="icon"><i class="fas fa-coins"></i></div>
+        <div class="number">R$ {{ total_profit|floatformat:2 }}</div>
+        <div class="label">Lucro Total</div>
+    </div>
+    <div class="summary-card" style="border-left-color: #ffc107;">
+        <div class="icon"><i class="fas fa-chart-line"></i></div>
+        <div class="number">R$ {{ avg_profit|floatformat:2 }}</div>
+        <div class="label">Média por Barbeiro</div>
+    </div>
+    <div class="summary-card" style="border-left-color: #6f42c1;">
+        <div class="icon"><i class="fas fa-star"></i></div>
+        <div class="number">{{ avg_rating|floatformat:1 }}</div>
+        <div class="label">Avaliação Média</div>
+    </div>
+</div>
+
+<!-- Período -->
+<div class="alert alert-info">
+    <i class="fas fa-calendar-alt"></i> Período: <strong>{{ period_label }}</strong>
+    <span class="ms-3">{{ start_date|date:"d/m/Y" }} até {{ end_date|date:"d/m/Y" }}</span>
+</div>
+
+<!-- Cards dos Barbeiros -->
+<div class="row">
+    {% for data in barber_data %}
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="barber-card">
+            <div class="barber-avatar">
+                {{ data.barber.full_name|first|upper }}
+            </div>
+            <div class="barber-name">{{ data.barber.full_name }}</div>
+            <div class="barber-specialty">
+                {{ data.barber.specialty|default:"Profissional" }}
+                <span class="rating-stars">
+                    {% if data.rating > 0 %}
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= data.rating %}
+                            ★
+                            {% else %}
+                            ☆
+                            {% endif %}
+                        {% endfor %}
+                        <small class="text-muted">({{ data.rating }})</small>
+                    {% else %}
+                        <small class="text-muted">Sem avaliações</small>
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="barber-stats">
+                <div class="stat-item revenue">
+                    <div class="stat-number">R$ {{ data.total_revenue|floatformat:2 }}</div>
+                    <div class="stat-label">Receita</div>
+                </div>
+                <div class="stat-item commission">
+                    <div class="stat-number">R$ {{ data.total_commission|floatformat:2 }}</div>
+                    <div class="stat-label">Comissão</div>
+                </div>
+                <div class="stat-item profit">
+                    <div class="stat-number">R$ {{ data.profit|floatformat:2 }}</div>
+                    <div class="stat-label">Lucro</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ data.total_services }}</div>
+                    <div class="stat-label">Serviços</div>
+                </div>
+            </div>
+            
+            <!-- Barra de Performance -->
+            <div class="mt-2">
+                <div class="d-flex justify-content-between small">
+                    <span class="text-muted">Performance</span>
+                    <span class="text-muted">{{ data.utilization|default:"0" }}%</span>
+                </div>
+                <div class="progress-custom">
+                    <div class="progress-bar-custom" style="width: {{ data.utilization|default:"0" }}%; background: {% if data.utilization >= 80 %}#28a745{% elif data.utilization >= 50 %}#ffc107{% else %}#dc3545{% endif %};"></div>
+                </div>
+            </div>
+            
+            <div class="mt-2 text-center">
+                <a href="{% url 'barbers:detail' data.barber.pk %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-user"></i> Ver Perfil
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center text-muted py-5">
+            <i class="fas fa-user-tie fa-3x mb-3"></i>
+            <p>Nenhum dado disponível para o período.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Tabela Detalhada -->
+<div class="card mt-3">
+    <div class="card-header">
+        <i class="fas fa-table"></i> Detalhamento por Barbeiro
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead>
+                    <tr>
+                        <th>Barbeiro</th>
+                        <th>Serviços</th>
+                        <th>Receita</th>
+                        <th>Comissão</th>
+                        <th>Comissões Pagas</th>
+                        <th>Lucro</th>
+                        <th>Ticket Médio</th>
+                        <th>Avaliação</th>
+                        <th>Performance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in barber_data %}
+                    <tr>
+                        <td><strong>{{ data.barber.full_name }}</strong></td>
+                        <td>{{ data.total_services }}</td>
+                        <td>R$ {{ data.total_revenue|floatformat:2 }}</td>
+                        <td>R$ {{ data.total_commission|floatformat:2 }}</td>
+                        <td>R$ {{ data.commissions_paid|floatformat:2 }}</td>
+                        <td class="fw-bold text-success">R$ {{ data.profit|floatformat:2 }}</td>
+                        <td>R$ {{ data.avg_ticket|floatformat:2 }}</td>
+                        <td>
+                            {% if data.rating > 0 %}
+                            <span class="text-warning">★ {{ data.rating }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="progress" style="height: 6px; width: 80px;">
+                                <div class="progress-bar bg-{% if data.utilization >= 80 %}success{% elif data.utilization >= 50 %}warning{% else %}danger{% endif %}" 
+                                     style="width: {{ data.utilization|default:"0" }}%;"></div>
+                            </div>
+                            <small>{{ data.utilization|default:"0" }}%</small>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted">Nenhum dado disponível</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

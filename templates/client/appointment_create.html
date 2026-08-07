@@ -6,7 +6,7 @@
 {% block extra_css %}
 <style>
     .appointment-form-container {
-        max-width: 600px;
+        max-width: 700px;
         margin: 0 auto;
     }
     
@@ -23,28 +23,157 @@
         flex: 1;
     }
     
+    .datetime-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border: 2px solid #e9ecef;
+        transition: all 0.3s;
+    }
+    
+    .datetime-card:focus-within {
+        border-color: #e94560;
+        box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.15);
+    }
+    
+    .datetime-card label {
+        font-weight: 600;
+        color: #1a1a2e;
+        font-size: 0.9rem;
+        display: block;
+        margin-bottom: 5px;
+    }
+    
+    .datetime-card input[type="date"],
+    .datetime-card input[type="time"] {
+        border: none;
+        padding: 10px 0;
+        font-size: 1.1rem;
+        width: 100%;
+        background: transparent;
+        color: #1a1a2e;
+        font-weight: 500;
+    }
+    
+    .datetime-card input[type="date"]:focus,
+    .datetime-card input[type="time"]:focus {
+        outline: none;
+    }
+    
+    .datetime-card input[type="date"]::-webkit-calendar-picker-indicator,
+    .datetime-card input[type="time"]::-webkit-calendar-picker-indicator {
+        filter: invert(0.4);
+        cursor: pointer;
+        padding: 5px;
+    }
+    
+    .datetime-card input[type="date"]::-webkit-calendar-picker-indicator:hover,
+    .datetime-card input[type="time"]::-webkit-calendar-picker-indicator:hover {
+        filter: invert(0.6);
+    }
+    
+    .time-slots {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-top: 10px;
+    }
+    
+    .time-slot {
+        padding: 8px 5px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 0.85rem;
+        background: white;
+        color: #1a1a2e;
+    }
+    
+    .time-slot:hover:not(.disabled) {
+        border-color: #0d6efd;
+        background: #f0f7ff;
+    }
+    
+    .time-slot.selected {
+        border-color: #e94560;
+        background: #fff0f3;
+        color: #e94560;
+        font-weight: 600;
+    }
+    
+    .time-slot.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        background: #f8f9fa;
+    }
+    
+    .time-slot .slot-time {
+        font-weight: 600;
+    }
+    
+    .time-slot .slot-status {
+        font-size: 0.65rem;
+        color: #6c757d;
+        display: block;
+    }
+    
+    .time-slot.available .slot-status {
+        color: #28a745;
+    }
+    
+    .time-slot.unavailable .slot-status {
+        color: #dc3545;
+    }
+    
+    .time-slot.lunch .slot-status {
+        color: #ffc107;
+    }
+    
+    .loading-slots {
+        text-align: center;
+        padding: 20px;
+        color: #6c757d;
+    }
+    
+    .loading-slots .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #e94560;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 10px;
+    }
+    
+    .error-slots {
+        text-align: center;
+        padding: 20px;
+        color: #dc3545;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    @media (max-width: 768px) {
+        .time-slots {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    
     @media (max-width: 576px) {
         .datetime-row {
             flex-direction: column;
             gap: 10px;
         }
-    }
-    
-    .form-info-card {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border: none;
-        border-radius: var(--border-radius);
-        padding: 20px 25px;
-    }
-    
-    .form-info-card ul {
-        margin: 0;
-        padding-left: 20px;
-    }
-    
-    .form-info-card ul li {
-        margin-bottom: 5px;
-        color: #555;
+        .time-slots {
+            grid-template-columns: repeat(2, 1fr);
+        }
     }
 </style>
 {% endblock %}
@@ -60,7 +189,7 @@
                 <p class="mb-0 small opacity-75">Preencha os dados abaixo para agendar seu horário</p>
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" id="appointmentForm">
                     {% csrf_token %}
                     
                     {% if form.non_field_errors %}
@@ -110,25 +239,45 @@
                         {% endif %}
                     </div>
                     
+                    <!-- Data e Hora Estilizadas -->
                     <div class="mb-3">
                         <label class="form-label">
                             <i class="fas fa-clock text-gradient"></i> Data e Hora
                         </label>
                         <div class="datetime-row">
                             <div class="col-date">
-                                {{ form.appointment_date }}
-                                {% if form.appointment_date.errors %}
-                                <div class="text-danger small">{{ form.appointment_date.errors }}</div>
-                                {% endif %}
+                                <div class="datetime-card">
+                                    <label for="{{ form.appointment_date.id_for_label }}">📅 Data</label>
+                                    {{ form.appointment_date }}
+                                    {% if form.appointment_date.errors %}
+                                    <div class="text-danger small">{{ form.appointment_date.errors }}</div>
+                                    {% endif %}
+                                </div>
                             </div>
                             <div class="col-time">
-                                {{ form.appointment_time }}
-                                {% if form.appointment_time.errors %}
-                                <div class="text-danger small">{{ form.appointment_time.errors }}</div>
-                                {% endif %}
+                                <div class="datetime-card">
+                                    <label for="{{ form.appointment_time.id_for_label }}">🕐 Horário</label>
+                                    {{ form.appointment_time }}
+                                    {% if form.appointment_time.errors %}
+                                    <div class="text-danger small">{{ form.appointment_time.errors }}</div>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                         <small class="text-muted d-block mt-1">Horário de funcionamento: 08:00 às 20:00</small>
+                    </div>
+                    
+                    <!-- Sugestões de Horários -->
+                    <div class="mb-3" id="timeSuggestions">
+                        <label class="form-label small text-muted">
+                            <i class="fas fa-clock"></i> Horários disponíveis:
+                        </label>
+                        <div class="time-slots" id="timeSlots">
+                            <div class="loading-slots">
+                                <span class="spinner"></span>
+                                Carregando horários disponíveis...
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="mb-3">
@@ -142,7 +291,7 @@
                     </div>
                     
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-submit">
+                        <button type="submit" class="btn btn-submit" id="submitBtn">
                             <i class="fas fa-check"></i> Confirmar Agendamento
                         </button>
                         <a href="{% url 'client:home' %}" class="btn btn-outline-secondary">
@@ -167,30 +316,138 @@
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Máscara para telefone
-        const phoneInput = document.querySelector('#{{ form.customer_phone.id_for_label }}');
-        if (phoneInput) {
-            phoneInput.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length <= 11) {
-                    if (value.length <= 2) {
-                        value = value.replace(/^(\d{0,2})/, '($1');
-                    } else if (value.length <= 6) {
-                        value = value.replace(/^(\d{2})(\d{0,4})/, '($1) $2');
-                    } else {
-                        value = value.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
-                    }
-                    e.target.value = value;
+document.addEventListener('DOMContentLoaded', function() {
+    // Máscara para telefone
+    const phoneInput = document.querySelector('#{{ form.customer_phone.id_for_label }}');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                if (value.length <= 2) {
+                    value = value.replace(/^(\d{0,2})/, '($1');
+                } else if (value.length <= 6) {
+                    value = value.replace(/^(\d{2})(\d{0,4})/, '($1) $2');
+                } else {
+                    value = value.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
                 }
-            });
+                e.target.value = value;
+            }
+        });
+    }
+    
+    // Configurar horário mínimo e máximo
+    const timeInput = document.querySelector('#{{ form.appointment_time.id_for_label }}');
+    if (timeInput) {
+        timeInput.setAttribute('min', '08:00');
+        timeInput.setAttribute('max', '20:00');
+    }
+    
+    // Elementos para buscar horários
+    const dateInput = document.querySelector('#{{ form.appointment_date.id_for_label }}');
+    const barberSelect = document.querySelector('#{{ form.barber.id_for_label }}');
+    const serviceSelect = document.querySelector('#{{ form.service.id_for_label }}');
+    const timeSlots = document.getElementById('timeSlots');
+    const timeField = document.querySelector('#{{ form.appointment_time.id_for_label }}');
+    
+    function getAvailableSlots() {
+        const date = dateInput.value;
+        const barber = barberSelect.value;
+        const service = serviceSelect.value;
+        
+        if (!date || !barber || !service) {
+            timeSlots.innerHTML = '<div class="col-12 text-muted small">Selecione data, barbeiro e serviço para ver horários disponíveis</div>';
+            return;
         }
         
-        const timeInput = document.querySelector('#{{ form.appointment_time.id_for_label }}');
-        if (timeInput) {
-            timeInput.setAttribute('min', '08:00');
-            timeInput.setAttribute('max', '20:00');
+        // Mostrar loading
+        timeSlots.innerHTML = `
+            <div class="loading-slots">
+                <span class="spinner"></span>
+                Buscando horários disponíveis...
+            </div>
+        `;
+        
+        // Buscar horários disponíveis via AJAX
+        fetch(`/cliente/api/available-slots/?date=${date}&barber=${barber}&service=${service}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar horários');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Dados recebidos:', data);
+                renderSlots(data);
+            })
+            .catch(error => {
+                console.error('Erro ao buscar horários:', error);
+                timeSlots.innerHTML = `<div class="error-slots">❌ ${error.message || 'Erro ao carregar horários. Tente novamente.'}</div>`;
+            });
+    }
+    
+    function renderSlots(data) {
+        if (data.error) {
+            timeSlots.innerHTML = `<div class="error-slots">❌ ${data.error}</div>`;
+            return;
+        }
+        
+        if (!data.slots || data.slots.length === 0) {
+            timeSlots.innerHTML = '<div class="col-12 text-muted small">Nenhum horário disponível para esta data e barbeiro.</div>';
+            return;
+        }
+        
+        timeSlots.innerHTML = '';
+        
+        data.slots.forEach(slot => {
+            const slotDiv = document.createElement('div');
+            slotDiv.className = `time-slot ${slot.status}`;
+            slotDiv.dataset.time = slot.time;
+            slotDiv.dataset.start = slot.start;
+            slotDiv.dataset.end = slot.end;
+            
+            const statusText = slot.label || slot.status;
+            
+            slotDiv.innerHTML = `
+                <span class="slot-time">${slot.time}</span>
+                <span class="slot-status">${statusText}</span>
+            `;
+            
+            if (slot.status === 'available') {
+                slotDiv.addEventListener('click', function() {
+                    // Remover seleção anterior
+                    document.querySelectorAll('.time-slot.selected').forEach(el => {
+                        el.classList.remove('selected');
+                    });
+                    
+                    // Selecionar este slot
+                    this.classList.add('selected');
+                    
+                    // Atualizar campo de hora
+                    timeField.value = this.dataset.time;
+                });
+            }
+            
+            timeSlots.appendChild(slotDiv);
+        });
+    }
+    
+    // Event listeners para atualizar horários
+    dateInput.addEventListener('change', getAvailableSlots);
+    barberSelect.addEventListener('change', function() {
+        if (dateInput.value && serviceSelect.value) {
+            getAvailableSlots();
         }
     });
+    serviceSelect.addEventListener('change', function() {
+        if (dateInput.value && barberSelect.value) {
+            getAvailableSlots();
+        }
+    });
+    
+    // Carregar horários iniciais se todos os campos estiverem preenchidos
+    if (dateInput.value && barberSelect.value && serviceSelect.value) {
+        getAvailableSlots();
+    }
+});
 </script>
 {% endblock %}

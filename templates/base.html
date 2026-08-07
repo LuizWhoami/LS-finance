@@ -9,6 +9,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/admin-premium.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -39,7 +42,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#" title="Notificações">
+                            <a class="nav-link" href="{% url 'notifications:list' %}" title="Notificações">
                                 <i class="fas fa-bell"></i>
                                 <span class="badge bg-danger">{{ unread_notification_count|default:"0" }}</span>
                             </a>
@@ -80,17 +83,16 @@
     <div class="container-fluid">
         <div class="row">
             {% if user.is_authenticated %}
-            <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar sidebar-sticky">
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar sidebar-sticky">
                 <div class="position-sticky pt-3">
                     <div class="sidebar-user-info text-center mb-4">
                         <img src="{% static 'images/default-avatar.png' %}" alt="Avatar" 
                              class="rounded-circle img-fluid" style="width: 80px;">
                         <h6 class="mt-2">{{ user.get_full_name|default:user.username }}</h6>
-                        <small class="text-muted">{{ user.groups.all|join:", "|default:"Usuário" }}</small>
+                        <small class="text-muted">{{ user.groups.all|join:", "|default:"Administrador" }}</small>
                     </div>
                     
                     <ul class="nav flex-column">
-                        <!-- Dashboard -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.namespace == 'core' and request.resolver_match.url_name == 'home' %}active{% endif %}" 
                                href="{% url 'core:home' %}">
@@ -98,7 +100,6 @@
                             </a>
                         </li>
                         
-                        <!-- Agendamentos -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.namespace == 'appointments' %}active{% endif %}" 
                                href="{% url 'appointments:list' %}">
@@ -106,7 +107,6 @@
                             </a>
                         </li>
                         
-                        <!-- Clientes -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.namespace == 'customers' %}active{% endif %}" 
                                href="{% url 'customers:list' %}">
@@ -114,7 +114,6 @@
                             </a>
                         </li>
                         
-                        <!-- Barbeiros -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.namespace == 'barbers' %}active{% endif %}" 
                                href="{% url 'barbers:list' %}">
@@ -122,7 +121,13 @@
                             </a>
                         </li>
                         
-                        <!-- Serviços -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.namespace == 'barbers' and request.resolver_match.url_name == 'schedule_dashboard' %}active{% endif %}" 
+                               href="{% url 'barbers:schedule_dashboard' %}">
+                                <i class="fas fa-clock"></i> Configurar Horários
+                            </a>
+                        </li>
+                        
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.namespace == 'services' %}active{% endif %}" 
                                href="{% url 'services:list' %}">
@@ -130,7 +135,6 @@
                             </a>
                         </li>
                         
-                        <!-- Produtos -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.namespace == 'products' %}active{% endif %}" 
                                href="{% url 'products:list' %}">
@@ -138,15 +142,23 @@
                             </a>
                         </li>
                         
-                        <!-- Financeiro -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.namespace == 'finance' %}active{% endif %}" 
                                href="{% url 'finance:dashboard' %}">
                                 <i class="fas fa-coins"></i> Financeiro
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'finance:fixed_expenses' %}" style="padding-left: 35px; font-size: 0.85rem;">
+                                <i class="fas fa-dollar-sign"></i> Gastos Fixos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'finance:barber_profit' %}" style="padding-left: 35px; font-size: 0.85rem;">
+                                <i class="fas fa-user-tie"></i> Lucro Barbeiros
+                            </a>
+                        </li>
                         
-                        <!-- Assinaturas -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.namespace == 'subscriptions' %}active{% endif %}" 
                                href="{% url 'subscriptions:list' %}">
@@ -154,7 +166,6 @@
                             </a>
                         </li>
                         
-                        <!-- Relatórios -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.namespace == 'reports' %}active{% endif %}" 
                                href="{% url 'reports:dashboard' %}">
@@ -162,7 +173,6 @@
                             </a>
                         </li>
                         
-                        <!-- Notificações -->
                         <li class="nav-item">
                             <a class="nav-link {% if request.resolver_match.namespace == 'notifications' %}active{% endif %}" 
                                href="{% url 'notifications:list' %}">
@@ -185,56 +195,17 @@
                 </div>
                 <div class="offcanvas-body">
                     <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'core:home' %}">
-                                <i class="fas fa-home"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'appointments:list' %}">
-                                <i class="fas fa-calendar-check"></i> Agendamentos
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'customers:list' %}">
-                                <i class="fas fa-users"></i> Clientes
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'barbers:list' %}">
-                                <i class="fas fa-user-tie"></i> Barbeiros
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'services:list' %}">
-                                <i class="fas fa-cut"></i> Serviços
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'products:list' %}">
-                                <i class="fas fa-boxes"></i> Produtos
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'finance:dashboard' %}">
-                                <i class="fas fa-coins"></i> Financeiro
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'subscriptions:list' %}">
-                                <i class="fas fa-crown"></i> Assinaturas
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'reports:dashboard' %}">
-                                <i class="fas fa-chart-bar"></i> Relatórios
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'notifications:list' %}">
-                                <i class="fas fa-bell"></i> Notificações
-                            </a>
-                        </li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'core:home' %}"><i class="fas fa-home"></i> Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'appointments:list' %}"><i class="fas fa-calendar-check"></i> Agendamentos</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'customers:list' %}"><i class="fas fa-users"></i> Clientes</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'barbers:list' %}"><i class="fas fa-user-tie"></i> Barbeiros</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'barbers:schedule_dashboard' %}"><i class="fas fa-clock"></i> Configurar Horários</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'services:list' %}"><i class="fas fa-cut"></i> Serviços</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'products:list' %}"><i class="fas fa-boxes"></i> Produtos</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'finance:dashboard' %}"><i class="fas fa-coins"></i> Financeiro</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'subscriptions:list' %}"><i class="fas fa-crown"></i> Assinaturas</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'reports:dashboard' %}"><i class="fas fa-chart-bar"></i> Relatórios</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'notifications:list' %}"><i class="fas fa-bell"></i> Notificações</a></li>
                     </ul>
                 </div>
             </div>
@@ -273,9 +244,9 @@
         </div>
     </div>
     
-    <footer class="footer mt-auto py-3 bg-light fixed-bottom">
+    <footer class="footer mt-auto py-3 bg-transparent">
         <div class="container text-center">
-            <span class="text-muted">
+            <span class="text-muted" style="color: var(--text-muted) !important;">
                 &copy; {% now "Y" %} Barbearia LS - Todos os direitos reservados
             </span>
         </div>
@@ -284,7 +255,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="{% static 'js/base.js' %}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

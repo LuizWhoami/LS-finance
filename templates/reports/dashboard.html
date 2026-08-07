@@ -8,32 +8,74 @@
 {% block content %}
 <div class="row">
     <div class="col-md-4 mb-4">
-        <div class="card">
+        <div class="card h-100">
             <div class="card-body text-center">
                 <i class="fas fa-chart-pie fa-3x text-primary mb-3"></i>
                 <h5>Relatório Financeiro</h5>
                 <p class="text-muted">Análise de receitas, despesas e lucros</p>
-                <a href="#" class="btn btn-primary btn-sm">Acessar</a>
+                <a href="{% url 'reports:financial' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-arrow-right"></i> Acessar
+                </a>
             </div>
         </div>
     </div>
     <div class="col-md-4 mb-4">
-        <div class="card">
+        <div class="card h-100">
             <div class="card-body text-center">
                 <i class="fas fa-calendar-alt fa-3x text-success mb-3"></i>
                 <h5>Relatório de Agendamentos</h5>
                 <p class="text-muted">Análise de agendamentos por período</p>
-                <a href="#" class="btn btn-primary btn-sm">Acessar</a>
+                <a href="{% url 'reports:appointments' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-arrow-right"></i> Acessar
+                </a>
             </div>
         </div>
     </div>
     <div class="col-md-4 mb-4">
-        <div class="card">
+        <div class="card h-100">
             <div class="card-body text-center">
                 <i class="fas fa-users fa-3x text-info mb-3"></i>
                 <h5>Relatório de Clientes</h5>
                 <p class="text-muted">Análise de clientes e fidelidade</p>
-                <a href="#" class="btn btn-primary btn-sm">Acessar</a>
+                <a href="{% url 'reports:customers' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-arrow-right"></i> Acessar
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-user-tie fa-3x text-warning mb-3"></i>
+                <h5>Relatório de Barbeiros</h5>
+                <p class="text-muted">Análise de performance dos barbeiros</p>
+                <a href="{% url 'reports:barbers' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-arrow-right"></i> Acessar
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-boxes fa-3x text-danger mb-3"></i>
+                <h5>Relatório de Produtos</h5>
+                <p class="text-muted">Análise de estoque e consumo</p>
+                <a href="{% url 'reports:products' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-arrow-right"></i> Acessar
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-crown fa-3x text-purple mb-3" style="color: #6f42c1;"></i>
+                <h5>Relatório de Assinaturas</h5>
+                <p class="text-muted">Análise de planos e assinantes</p>
+                <a href="{% url 'reports:subscriptions' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-arrow-right"></i> Acessar
+                </a>
             </div>
         </div>
     </div>

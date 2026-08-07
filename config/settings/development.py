@@ -69,3 +69,6 @@ RATELIMIT_ENABLE = False
 
 # Desabilitar rate limit em desenvolvimento
 RATELIMIT_ENABLE = False
+
+# Permitir acesso de qualquer IP em desenvolvimento
+ALLOWED_HOSTS = ['*']

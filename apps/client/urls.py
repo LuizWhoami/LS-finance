@@ -15,4 +15,6 @@ urlpatterns = [
     path('login/', views.ClientLoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(next_page='client:home'), name='logout'),
     path('cadastro/', views.ClientRegisterView.as_view(), name='register'),
+    # API para horários disponíveis
+    path('api/available-slots/', views.get_available_slots, name='api_available_slots'),
 ]

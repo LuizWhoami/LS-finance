@@ -35,19 +35,21 @@
                         <td>
                             {% if customer.status == 'active' %}
                             <span class="badge bg-success">Ativo</span>
+                            {% elif customer.status == 'inactive' %}
+                            <span class="badge bg-warning">Inativo</span>
                             {% else %}
-                            <span class="badge bg-secondary">Inativo</span>
+                            <span class="badge bg-danger">Bloqueado</span>
                             {% endif %}
                         </td>
                         <td>{{ customer.total_visits }}</td>
                         <td>
-                            <a href="{% url 'customers:detail' customer.pk %}" class="btn btn-sm btn-info">
+                            <a href="{% url 'customers:detail' customer.pk %}" class="btn btn-sm btn-info" title="Visualizar">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="{% url 'customers:edit' customer.pk %}" class="btn btn-sm btn-warning">
+                            <a href="{% url 'customers:edit' customer.pk %}" class="btn btn-sm btn-warning" title="Editar">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="{% url 'customers:delete' customer.pk %}" class="btn btn-sm btn-danger">
+                            <a href="{% url 'customers:delete' customer.pk %}" class="btn btn-sm btn-danger" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir este cliente?')">
                                 <i class="fas fa-trash"></i>
                             </a>
                         </td>

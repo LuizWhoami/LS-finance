@@ -6,7 +6,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
-from .models import Transaction, CashRegister, Commission
+from .models import Transaction, CashRegister, Commission, FixedExpense
 from apps.customers.models import Customer
 
 
@@ -54,25 +54,20 @@ class TransactionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # Remover o campo customer do ModelForm (vamos usar customer_name)
         self.fields.pop('customer', None)
         
-        # Definir data atual como padrão
         if not self.instance.pk:
             self.fields['transaction_date'].initial = timezone.now()
         
-        # Filtrar apenas barbeiros ativos
         from apps.barbers.models import Barber
         self.fields['barber'].queryset = Barber.objects.filter(is_active=True)
         self.fields['barber'].required = False
     
     def save(self, commit=True):
-        """Salva a transação e cria/vincula cliente se necessário."""
         instance = super().save(commit=False)
         
         customer_name = self.cleaned_data.get('customer_name')
         
-        # Se tiver nome do cliente, buscar ou criar
         if customer_name:
             customer, created = Customer.objects.get_or_create(
                 full_name=customer_name,
@@ -109,4 +104,24 @@ class CashRegisterForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': 'Observações sobre a abertura do caixa'
             }),
+        }
+
+
+class FixedExpenseForm(forms.ModelForm):
+    """Formulário para gastos fixos."""
+    
+    class Meta:
+        model = FixedExpense
+        fields = [
+            'name', 'category', 'amount', 'frequency',
+            'due_day', 'description', 'is_active'
+        ]
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'category': forms.Select(attrs={'class': 'form-select'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'frequency': forms.Select(attrs={'class': 'form-select'}),
+            'due_day': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 31}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }

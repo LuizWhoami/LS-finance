@@ -29,10 +29,14 @@ class SubscriptionListView(LoginRequiredMixin, PermissionRequiredMixin, ListView
 
 class SubscriptionCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Subscription
-    fields = ['customer', 'plan', 'start_date', 'end_date', 'payment_method', 'auto_renew']
+    fields = ['customer', 'plan', 'start_date', 'end_date', 'next_billing_date', 'payment_method', 'auto_renew', 'notes']
     template_name = 'subscriptions/subscription_form.html'
     permission_required = 'subscriptions.add_subscription'
     success_url = reverse_lazy('subscriptions:list')
+
+    def form_valid(self, form):
+        messages.success(self.request, _('Assinatura criada com sucesso!'))
+        return super().form_valid(form)
 
 
 class SubscriptionDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
@@ -40,6 +44,29 @@ class SubscriptionDetailView(LoginRequiredMixin, PermissionRequiredMixin, Detail
     template_name = 'subscriptions/subscription_detail.html'
     context_object_name = 'subscription'
     permission_required = 'subscriptions.view_subscription'
+
+
+class SubscriptionUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    model = Subscription
+    fields = ['customer', 'plan', 'start_date', 'end_date', 'next_billing_date', 'payment_method', 'auto_renew', 'notes']
+    template_name = 'subscriptions/subscription_form.html'
+    permission_required = 'subscriptions.change_subscription'
+    success_url = reverse_lazy('subscriptions:list')
+
+    def form_valid(self, form):
+        messages.success(self.request, _('Assinatura atualizada com sucesso!'))
+        return super().form_valid(form)
+
+
+class SubscriptionDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    model = Subscription
+    template_name = 'subscriptions/subscription_confirm_delete.html'
+    permission_required = 'subscriptions.delete_subscription'
+    success_url = reverse_lazy('subscriptions:list')
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, _('Assinatura removida com sucesso!'))
+        return super().delete(request, *args, **kwargs)
 
 
 class SubscriptionCancelView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):

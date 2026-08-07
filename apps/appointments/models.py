@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
+from decimal import Decimal
 
 from apps.core.models import BaseModel
 from apps.core.exceptions import AppointmentConflictError, InvalidStatusTransition
@@ -175,6 +176,16 @@ class Appointment(BaseModel):
         null=True
     )
     
+    # Session key para agendamentos sem login
+    session_key = models.CharField(
+        _('Chave de Sessão'),
+        max_length=40,
+        blank=True,
+        null=True,
+        db_index=True,
+        help_text='Chave da sessão para agendamentos de visitantes'
+    )
+    
     class Meta:
         verbose_name = _('Agendamento')
         verbose_name_plural = _('Agendamentos')
@@ -194,20 +205,20 @@ class Appointment(BaseModel):
     
     def save(self, *args, **kwargs):
         """Valida e salva o agendamento."""
-        from decimal import Decimal
+        # Se estiver desativando (exclusão lógica), pular validações
+        if kwargs.get('update_fields') and 'is_active' in kwargs.get('update_fields', []):
+            super().save(*args, **kwargs)
+            return
         
-        self._validate_dates()
-        self._validate_conflicts()
-        
-        # Garantir que os valores são Decimal
-        self.service_price = Decimal(str(self.service_price))
-        self.discount = Decimal(str(self.discount))
-        
-        self._calculate_final_price()
-        self._calculate_commission()
+        # Se for uma atualização que não está desativando, validar
+        if not self.pk or self.is_active:
+            self._validate_dates()
+            self._validate_conflicts()
+            self._calculate_final_price()
+            self._calculate_commission()
         
         if not self.pk and self.service:
-            self.service_price = Decimal(str(self.service.price))
+            self.service_price = self.service.price
         
         super().save(*args, **kwargs)
     
@@ -228,6 +239,7 @@ class Appointment(BaseModel):
         # Verificar conflito com o barbeiro
         barber_conflicts = Appointment.objects.filter(
             barber=self.barber,
+            is_active=True,
             status__in=[
                 self.AppointmentStatus.SCHEDULED,
                 self.AppointmentStatus.CONFIRMED,
@@ -248,6 +260,7 @@ class Appointment(BaseModel):
         # Verificar conflito com o cliente
         customer_conflicts = Appointment.objects.filter(
             customer=self.customer,
+            is_active=True,
             status__in=[
                 self.AppointmentStatus.SCHEDULED,
                 self.AppointmentStatus.CONFIRMED,
@@ -384,14 +397,13 @@ class Appointment(BaseModel):
         
         time_until = self.start_time - timezone.now()
         return time_until.total_seconds() >= 7200  # 2 horas
-# Adicionar campo session_key no Appointment
-
-    # Adicionar após os campos existentes
-    session_key = models.CharField(
-        _('Chave de Sessão'),
-        max_length=40,
-        blank=True,
-        null=True,
-        db_index=True,
-        help_text='Chave da sessão para agendamentos de visitantes'
+    # Remover a linha que adicionou barber_profit
+    # Se existir, comente ou remova
+    # Adicionar barber_profit com valor padrão se necessário
+    barber_profit = models.DecimalField(
+        _('Lucro do Barbeiro'),
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        help_text='Lucro gerado para o barbeiro'
     )

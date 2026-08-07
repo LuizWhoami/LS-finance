@@ -1,7 +1,7 @@
 # Django Settings
 SECRET_KEY=django-insecure-key-for-development
 DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
+ALLOWED_HOSTS=localhost,127.0.0.1,192.168.1.3,0.0.0.0
 
 # Database
 DB_NAME=barbearia_ls

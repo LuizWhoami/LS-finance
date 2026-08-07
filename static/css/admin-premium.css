@@ -1,0 +1,690 @@
+/* ============================================================
+   ADMIN PREMIUM - BARBEARIA LS
+   Design Moderno, Elegante e Profissional
+   ============================================================ */
+
+:root {
+    --primary-dark: #0f0f1a;
+    --primary-mid: #1a1a2e;
+    --primary-light: #2d2d44;
+    --accent: #e94560;
+    --accent-hover: #c0392b;
+    --accent-gradient: linear-gradient(135deg, #e94560, #c0392b);
+    --gold: #f5c518;
+    --glass-bg: rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.85);
+    --text-muted: rgba(255, 255, 255, 0.6);
+    --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.15);
+    --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.3);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --bg-body: #f0f2f5;  /* Fundo cinza claro */
+}
+
+/* ============================================================
+   BODY - Fundo cinza claro
+   ============================================================ */
+body {
+    background: var(--bg-body) !important;
+    color: #1a1a2e !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ============================================================
+   MAIN CONTENT - Fundo cinza claro
+   ============================================================ */
+.main-content {
+    background: var(--bg-body);
+    min-height: calc(100vh - 70px);
+    padding: 20px 30px !important;
+}
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
+.navbar {
+    background: var(--primary-mid) !important;
+    border-bottom: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-sm);
+}
+
+.navbar-brand {
+    font-weight: 800;
+    font-size: 1.3rem;
+    letter-spacing: -0.5px;
+    color: var(--text-primary) !important;
+}
+
+.navbar-brand i {
+    color: var(--accent);
+    margin-right: 10px;
+}
+
+.navbar .nav-link {
+    color: var(--text-secondary) !important;
+    transition: var(--transition);
+    border-radius: 8px;
+    padding: 8px 16px;
+}
+
+.navbar .nav-link:hover {
+    color: var(--text-primary) !important;
+    background: var(--glass-bg);
+}
+
+.navbar .nav-link .badge {
+    background: var(--accent) !important;
+    color: white !important;
+}
+
+/* ============================================================
+   SIDEBAR - Fundo escuro com contraste
+   ============================================================ */
+.sidebar {
+    background: var(--primary-mid) !important;
+    border-right: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px);
+}
+
+.sidebar .sidebar-user-info {
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 20px;
+}
+
+.sidebar .sidebar-user-info img {
+    border: 3px solid var(--accent);
+    box-shadow: 0 0 30px rgba(233, 69, 96, 0.2);
+}
+
+.sidebar .sidebar-user-info h6 {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.sidebar .sidebar-user-info small {
+    color: var(--text-secondary);
+}
+
+.sidebar .nav-link {
+    color: var(--text-secondary) !important;
+    padding: 12px 20px;
+    border-radius: 12px;
+    margin: 2px 10px;
+    transition: var(--transition);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.sidebar .nav-link i {
+    width: 24px;
+    text-align: center;
+    margin-right: 12px;
+    font-size: 1.1rem;
+}
+
+.sidebar .nav-link:hover {
+    color: var(--text-primary) !important;
+    background: var(--glass-bg);
+    transform: translateX(4px);
+}
+
+.sidebar .nav-link.active {
+    color: var(--text-primary) !important;
+    background: var(--glass-bg);
+    border-right: 3px solid var(--accent);
+}
+
+.sidebar .nav-link .badge {
+    background: var(--accent) !important;
+    color: white !important;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+}
+
+/* ============================================================
+   CARDS - Fundo branco com sombra
+   ============================================================ */
+.card {
+    background: #ffffff !important;
+    border: none !important;
+    border-radius: var(--radius) !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06) !important;
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+}
+
+.card .card-header {
+    background: rgba(0, 0, 0, 0.02) !important;
+    border-bottom: 1px solid #e9ecef !important;
+    color: #1a1a2e !important;
+    font-weight: 600;
+    padding: 16px 24px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card .card-header i {
+    color: var(--accent);
+    margin-right: 8px;
+}
+
+.card .card-body {
+    padding: 24px;
+    color: #1a1a2e !important;
+}
+
+.card .card-body .text-muted {
+    color: #6c757d !important;
+}
+
+/* ============================================================
+   STAT CARDS (Premium) - Fundo branco
+   ============================================================ */
+.stat-card-premium {
+    background: #ffffff !important;
+    border: none !important;
+    border-radius: var(--radius) !important;
+    padding: 24px;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.stat-card-premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--accent-gradient);
+}
+
+.stat-card-premium:hover {
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card-premium .stat-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-card-premium .stat-label {
+    color: #6c757d;
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+.stat-card-premium .stat-icon {
+    font-size: 2.8rem;
+    opacity: 0.1;
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #1a1a2e;
+}
+
+.stat-card-premium .stat-change {
+    font-size: 0.8rem;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+    display: inline-block;
+    margin-top: 8px;
+}
+
+.stat-card-premium .stat-change.danger {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+/* ============================================================
+   TABELAS
+   ============================================================ */
+.table {
+    color: #1a1a2e !important;
+}
+
+.table thead th {
+    background: rgba(0, 0, 0, 0.02) !important;
+    border-bottom: 2px solid #e9ecef !important;
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 16px;
+}
+
+.table tbody td {
+    border-bottom: 1px solid #f0f2f5 !important;
+    padding: 14px 16px;
+    vertical-align: middle;
+    color: #1a1a2e !important;
+}
+
+.table tbody tr:hover {
+    background: rgba(0, 0, 0, 0.02) !important;
+}
+
+.table tbody td .text-muted {
+    color: #6c757d !important;
+}
+
+.table .badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.75rem;
+}
+
+/* ============================================================
+   BOTÕES
+   ============================================================ */
+.btn {
+    border-radius: 10px;
+    font-weight: 600;
+    padding: 10px 24px;
+    transition: var(--transition);
+    font-size: 0.9rem;
+}
+
+.btn-primary {
+    background: var(--accent-gradient) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--accent) !important;
+    color: var(--accent) !important;
+}
+
+.btn-outline-primary:hover {
+    background: var(--accent) !important;
+    color: white !important;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745, #20c997) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545, #e74c3c) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #ffc107, #fd7e14) !important;
+    border: none !important;
+    color: #000 !important;
+}
+
+.btn-info {
+    background: linear-gradient(135deg, #17a2b8, #0dcaf0) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.btn-secondary {
+    background: #e9ecef !important;
+    border: 1px solid #dee2e6 !important;
+    color: #495057 !important;
+}
+
+.btn-secondary:hover {
+    background: #dee2e6 !important;
+    color: #1a1a2e !important;
+}
+
+.btn-sm {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    border-radius: 8px;
+}
+
+/* ============================================================
+   ALERTAS
+   ============================================================ */
+.alert {
+    border: none !important;
+    border-radius: var(--radius-sm) !important;
+    color: #1a1a2e !important;
+}
+
+.alert-success {
+    background: #d4edda !important;
+    border-left: 4px solid #28a745 !important;
+}
+
+.alert-danger {
+    background: #f8d7da !important;
+    border-left: 4px solid #dc3545 !important;
+}
+
+.alert-warning {
+    background: #fff3cd !important;
+    border-left: 4px solid #ffc107 !important;
+}
+
+.alert-info {
+    background: #d1ecf1 !important;
+    border-left: 4px solid #17a2b8 !important;
+}
+
+/* ============================================================
+   FORMULÁRIOS
+   ============================================================ */
+.form-control, .form-select {
+    background: #ffffff !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: var(--radius-sm) !important;
+    color: #1a1a2e !important;
+    padding: 12px 16px;
+    transition: var(--transition);
+}
+
+.form-control:focus, .form-select:focus {
+    background: #ffffff !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.15) !important;
+    color: #1a1a2e !important;
+}
+
+.form-control::placeholder {
+    color: #adb5bd !important;
+}
+
+.form-label {
+    color: #495057;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+/* ============================================================
+   PAGINAÇÃO
+   ============================================================ */
+.pagination .page-link {
+    background: #ffffff !important;
+    border: 1px solid #dee2e6 !important;
+    color: #495057 !important;
+    border-radius: 8px !important;
+    margin: 0 3px;
+    transition: var(--transition);
+}
+
+.pagination .page-link:hover {
+    background: var(--accent) !important;
+    color: white !important;
+    border-color: var(--accent) !important;
+}
+
+.pagination .page-item.active .page-link {
+    background: var(--accent) !important;
+    border-color: var(--accent) !important;
+    color: white !important;
+}
+
+/* ============================================================
+   BREADCRUMB
+   ============================================================ */
+.breadcrumb {
+    background: transparent !important;
+}
+
+.breadcrumb-item a {
+    color: var(--accent) !important;
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--accent-hover) !important;
+}
+
+.breadcrumb-item.active {
+    color: #495057 !important;
+}
+
+.breadcrumb-item+.breadcrumb-item::before {
+    color: #6c757d !important;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer {
+    background: transparent !important;
+    border-top: 1px solid #e9ecef;
+}
+
+.footer .text-muted {
+    color: #6c757d !important;
+}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f0f2f5;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ced4da;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+
+/* ============================================================
+   ANIMAÇÕES
+   ============================================================ */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(233, 69, 96, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(233, 69, 96, 0.4);
+    }
+}
+
+.pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* ============================================================
+   RESPONSIVO
+   ============================================================ */
+@media (max-width: 768px) {
+    .stat-card-premium .stat-number {
+        font-size: 1.8rem;
+    }
+    
+    .card .card-header {
+        padding: 12px 16px;
+        font-size: 0.8rem;
+    }
+    
+    .card .card-body {
+        padding: 16px;
+    }
+    
+    .sidebar .nav-link {
+        padding: 10px 16px;
+        margin: 2px 6px;
+    }
+}
+
+/* ============================================================
+   CORREÇÕES DE LEGIBILIDADE
+   ============================================================ */
+
+/* Texto em cards de detalhe */
+.detail-card .card-body {
+    color: #1a1a2e !important;
+}
+
+/* Texto em tabelas dentro de cards */
+.card .table {
+    color: #1a1a2e !important;
+}
+
+.card .table td,
+.card .table th {
+    color: #1a1a2e !important;
+}
+
+/* Badges dentro de tabelas */
+.table .badge {
+    color: #fff !important;
+}
+
+.table .badge.bg-warning {
+    color: #000 !important;
+}
+
+/* Links dentro de cards */
+.card a:not(.btn) {
+    color: var(--accent) !important;
+}
+
+.card a:not(.btn):hover {
+    color: var(--accent-hover) !important;
+}
+
+/* Texto em alertas */
+.alert {
+    color: #1a1a2e !important;
+}
+
+.alert .text-muted {
+    color: #6c757d !important;
+}
+
+/* Placeholder de formulários */
+.form-control::placeholder {
+    color: #adb5bd !important;
+    opacity: 1;
+}
+
+/* Texto em modals */
+.modal-content {
+    background: #ffffff !important;
+    color: #1a1a2e !important;
+}
+
+.modal-header {
+    border-bottom: 1px solid #e9ecef !important;
+}
+
+.modal-footer {
+    border-top: 1px solid #e9ecef !important;
+}
+
+/* Dropdowns */
+.dropdown-menu {
+    background: #ffffff !important;
+    border: 1px solid #e9ecef !important;
+}
+
+.dropdown-item {
+    color: #495057 !important;
+}
+
+.dropdown-item:hover {
+    background: rgba(0, 0, 0, 0.02) !important;
+    color: #1a1a2e !important;
+}
+
+/* Labels e textos auxiliares */
+small.text-muted,
+.small.text-muted {
+    color: #6c757d !important;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+/* Títulos de página */
+.h1, .h2, .h3, .h4, .h5, .h6,
+h1, h2, h3, h4, h5, h6 {
+    color: #1a1a2e !important;
+}
+
+/* Links de breadcrumb */
+.breadcrumb-item a {
+    color: var(--accent) !important;
+}
+
+.breadcrumb-item.active {
+    color: #495057 !important;
+}
+
+/* Fundo da página principal */
+.main-content {
+    background: #f0f2f5;
+}
+
+/* Cards transparentes */
+.card.bg-transparent {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Alertas de mensagem */
+.alert .btn-close {
+    filter: none !important;
+}

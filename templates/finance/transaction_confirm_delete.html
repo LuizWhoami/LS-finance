@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}Excluir Transação{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão
+            </div>
+            <div class="card-body">
+                <p>Tem certeza que deseja excluir esta transação?</p>
+                <p><strong>Descrição:</strong> {{ transaction.description }}</p>
+                <p><strong>Valor:</strong> R$ {{ transaction.amount }}</p>
+                <p><strong>Data:</strong> {{ transaction.transaction_date|date:"d/m/Y H:i" }}</p>
+                <p class="text-muted small">A transação será desativada, mas os dados permanecerão no sistema.</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Confirmar Exclusão
+                        </button>
+                        <a href="{% url 'finance:transactions' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

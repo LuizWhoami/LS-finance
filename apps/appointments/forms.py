@@ -35,9 +35,26 @@ class AppointmentForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
         # Filtrar apenas barbeiros ativos
         self.fields['barber'].queryset = Barber.objects.filter(is_active=True)
+        
         # Filtrar apenas serviços ativos
         self.fields['service'].queryset = Service.objects.filter(is_active=True)
-        # Filtrar apenas clientes ativos
-        self.fields['customer'].queryset = Customer.objects.filter(is_active=True)
+        
+        # MOSTRAR TODOS OS CLIENTES (COM E SEM USUÁRIO)
+        # Ordenar por nome
+        self.fields['customer'].queryset = Customer.objects.filter(
+            is_active=True
+        ).order_by('full_name')
+        
+        # Adicionar um texto de ajuda para mostrar que clientes sem login também aparecem
+        self.fields['customer'].help_text = "Clientes com e sem cadastro"
+        
+        # Definir valor padrão para data/hora
+        if not self.instance.pk:
+            now = timezone.now()
+            # Arredondar para a próxima hora cheia
+            next_hour = now.replace(minute=0, second=0, microsecond=0) + timezone.timedelta(hours=1)
+            self.fields['start_time'].initial = next_hour
+            self.fields['end_time'].initial = next_hour + timezone.timedelta(minutes=30)

@@ -8,13 +8,14 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
+from django.db import transaction
+from django.shortcuts import redirect
 
 from .models import Customer, CustomerHistory
 from .forms import CustomerForm, CustomerHistoryForm
 
 
 class CustomerListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    """Lista de clientes."""
     model = Customer
     template_name = 'customers/customer_list.html'
     context_object_name = 'customers'
@@ -23,8 +24,8 @@ class CustomerListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset().select_related('user', 'preferred_barber')
+        queryset = queryset.filter(is_active=True)
         
-        # Busca
         search = self.request.GET.get('search')
         if search:
             queryset = queryset.filter(
@@ -34,16 +35,9 @@ class CustomerListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
                 Q(email__icontains=search)
             )
         
-        # Filtros
         status = self.request.GET.get('status')
         if status:
             queryset = queryset.filter(status=status)
-        
-        has_user = self.request.GET.get('has_user')
-        if has_user == 'yes':
-            queryset = queryset.filter(user__isnull=False)
-        elif has_user == 'no':
-            queryset = queryset.filter(user__isnull=True)
         
         return queryset
 
@@ -54,7 +48,6 @@ class CustomerListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 
 
 class CustomerCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
-    """Cria um novo cliente."""
     model = Customer
     form_class = CustomerForm
     template_name = 'customers/customer_form.html'
@@ -67,7 +60,6 @@ class CustomerCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView
 
 
 class CustomerUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    """Edita um cliente."""
     model = Customer
     form_class = CustomerForm
     template_name = 'customers/customer_form.html'
@@ -80,19 +72,34 @@ class CustomerUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView
 
 
 class CustomerDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
-    """Remove um cliente."""
     model = Customer
     template_name = 'customers/customer_confirm_delete.html'
     permission_required = 'customers.delete_customer'
     success_url = reverse_lazy('customers:list')
 
+    @transaction.atomic
     def delete(self, request, *args, **kwargs):
-        messages.success(request, _('Cliente removido com sucesso!'))
-        return super().delete(request, *args, **kwargs)
+        customer = self.get_object()
+        
+        # Verificar se tem agendamentos
+        from apps.appointments.models import Appointment
+        appointments = Appointment.objects.filter(customer=customer)
+        
+        if appointments.exists():
+            # Desvincular agendamentos
+            appointments.update(customer=None)
+            messages.warning(request, f'Cliente tinha {appointments.count()} agendamentos que foram desvinculados.')
+        
+        # Soft delete - apenas desativar
+        customer.is_active = False
+        customer.status = Customer.CustomerStatus.INACTIVE
+        customer.save(update_fields=['is_active', 'status', 'updated_at'])
+        
+        messages.success(request, _('Cliente desativado com sucesso!'))
+        return redirect(self.success_url)
 
 
 class CustomerDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
-    """Detalhes de um cliente."""
     model = Customer
     template_name = 'customers/customer_detail.html'
     context_object_name = 'customer'
@@ -100,15 +107,12 @@ class CustomerDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Buscar histórico do cliente
         context['history'] = self.object.history.all()[:10]
-        # Buscar agendamentos do cliente
-        context['appointments'] = self.object.appointments.all()[:10]
+        context['appointments'] = self.object.appointments.filter(is_active=True)[:10]
         return context
 
 
 class CustomerHistoryView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    """Histórico de atividades do cliente."""
     model = CustomerHistory
     template_name = 'customers/customer_history.html'
     context_object_name = 'history'

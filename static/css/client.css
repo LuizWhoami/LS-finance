@@ -579,3 +579,75 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
 }
+
+/* ==========================================================================
+   SELEÇÃO DE DATA/HORA ESTILIZADA
+   ========================================================================== */
+.datetime-card input[type="date"],
+.datetime-card input[type="time"] {
+    border: none;
+    padding: 10px 0;
+    font-size: 1.1rem;
+    width: 100%;
+    background: transparent;
+    color: #1a1a2e;
+    font-weight: 500;
+    font-family: inherit;
+}
+
+.datetime-card input[type="date"]:focus,
+.datetime-card input[type="time"]:focus {
+    outline: none;
+}
+
+.datetime-card input[type="date"]::-webkit-calendar-picker-indicator,
+.datetime-card input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.4);
+    cursor: pointer;
+    padding: 5px;
+    transition: filter 0.3s;
+}
+
+.datetime-card input[type="date"]::-webkit-calendar-picker-indicator:hover,
+.datetime-card input[type="time"]::-webkit-calendar-picker-indicator:hover {
+    filter: invert(0.2);
+}
+
+/* Estilização do seletor de data */
+.datetime-card input[type="date"]::-webkit-datetime-edit {
+    padding: 0;
+}
+
+.datetime-card input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+    display: flex;
+    gap: 5px;
+}
+
+.datetime-card input[type="date"]::-webkit-datetime-edit-day-field {
+    color: #1a1a2e;
+}
+
+.datetime-card input[type="date"]::-webkit-datetime-edit-month-field {
+    color: #1a1a2e;
+}
+
+.datetime-card input[type="date"]::-webkit-datetime-edit-year-field {
+    color: #1a1a2e;
+}
+
+/* Estilização do seletor de hora */
+.datetime-card input[type="time"]::-webkit-datetime-edit {
+    padding: 0;
+}
+
+.datetime-card input[type="time"]::-webkit-datetime-edit-hour-field {
+    color: #1a1a2e;
+}
+
+.datetime-card input[type="time"]::-webkit-datetime-edit-minute-field {
+    color: #1a1a2e;
+}
+
+.datetime-card input[type="time"]::-webkit-datetime-edit-ampm-field {
+    display: none;
+}

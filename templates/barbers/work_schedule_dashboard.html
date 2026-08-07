@@ -1,0 +1,382 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Configuração de Horários{% endblock %}
+
+{% block page_title %}Configuração de Horários dos Barbeiros{% endblock %}
+
+{% block extra_css %}
+<style>
+    .schedule-grid {
+        display: grid;
+        grid-template-columns: 150px repeat(7, 1fr);
+        gap: 2px;
+        background: #e9ecef;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .schedule-cell {
+        background: white;
+        padding: 10px;
+        min-height: 90px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    .schedule-cell.header {
+        background: #1a1a2e;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 15px 10px;
+    }
+    .schedule-cell.header.weekend {
+        background: #2d1b69;
+    }
+    .schedule-cell.barber-name {
+        background: #f8f9fa;
+        font-weight: 600;
+        font-size: 0.9rem;
+        justify-content: center;
+        padding: 15px 10px;
+        border-right: 2px solid #e9ecef;
+    }
+    .schedule-cell.available {
+        background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        border-left: 4px solid #28a745;
+    }
+    .schedule-cell.unavailable {
+        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+        border-left: 4px solid #dc3545;
+        opacity: 0.7;
+    }
+    .schedule-cell.partial {
+        background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+        border-left: 4px solid #ffc107;
+    }
+    .schedule-cell .time-range {
+        font-weight: 700;
+        font-size: 0.8rem;
+        color: #1a1a2e;
+    }
+    .schedule-cell .break-time {
+        font-size: 0.65rem;
+        color: #6c757d;
+        background: rgba(0,0,0,0.05);
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-top: 3px;
+    }
+    .schedule-cell .status-badge {
+        font-size: 0.6rem;
+        padding: 2px 10px;
+        border-radius: 10px;
+        margin-top: 4px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    .schedule-cell .status-badge.available {
+        background: #28a745;
+        color: white;
+    }
+    .schedule-cell .status-badge.unavailable {
+        background: #dc3545;
+        color: white;
+    }
+    .schedule-cell .status-badge.partial {
+        background: #ffc107;
+        color: #000;
+    }
+    .schedule-cell .edit-btn {
+        margin-top: 4px;
+        font-size: 0.7rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .schedule-cell:hover .edit-btn {
+        opacity: 1;
+    }
+    .schedule-cell .day-status {
+        font-size: 0.7rem;
+        margin-top: 2px;
+    }
+    .schedule-cell .day-status .dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 4px;
+    }
+    .schedule-cell .day-status .dot.available {
+        background: #28a745;
+    }
+    .schedule-cell .day-status .dot.unavailable {
+        background: #dc3545;
+    }
+    .schedule-cell .day-status .dot.partial {
+        background: #ffc107;
+    }
+    
+    /* Cards de Resumo */
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    .summary-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border-left: 4px solid #0d6efd;
+        transition: transform 0.2s;
+    }
+    .summary-card:hover {
+        transform: translateY(-2px);
+    }
+    .summary-card .number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #1a1a2e;
+    }
+    .summary-card .label {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    .summary-card .icon {
+        font-size: 1.5rem;
+        opacity: 0.5;
+    }
+    
+    @media (max-width: 768px) {
+        .schedule-grid {
+            grid-template-columns: 100px repeat(7, 1fr);
+            font-size: 0.7rem;
+        }
+        .schedule-cell {
+            padding: 5px;
+            min-height: 70px;
+            font-size: 0.65rem;
+        }
+        .schedule-cell .time-range {
+            font-size: 0.6rem;
+        }
+        .schedule-cell .edit-btn {
+            opacity: 1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'barbers:schedule_add' %}" class="btn btn-primary">
+    <i class="fas fa-plus"></i> Novo Horário
+</a>
+<a href="#" class="btn btn-outline-secondary" onclick="window.location.reload();">
+    <i class="fas fa-sync"></i> Atualizar
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Cards de Resumo -->
+<div class="summary-cards">
+    <div class="summary-card">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <div class="number">{{ barbers.count }}</div>
+                <div class="label">Barbeiros</div>
+            </div>
+            <div class="icon"><i class="fas fa-user-tie"></i></div>
+        </div>
+    </div>
+    <div class="summary-card" style="border-left-color: #28a745;">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <div class="number">{{ total_available|default:0 }}</div>
+                <div class="label">Horários Disponíveis</div>
+            </div>
+            <div class="icon"><i class="fas fa-check-circle" style="color: #28a745;"></i></div>
+        </div>
+    </div>
+    <div class="summary-card" style="border-left-color: #ffc107;">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <div class="number">{{ total_unavailable|default:0 }}</div>
+                <div class="label">Horários Indisponíveis</div>
+            </div>
+            <div class="icon"><i class="fas fa-times-circle" style="color: #dc3545;"></i></div>
+        </div>
+    </div>
+    <div class="summary-card" style="border-left-color: #6f42c1;">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <div class="number">{{ total_schedules|default:0 }}</div>
+                <div class="label">Total de Horários</div>
+            </div>
+            <div class="icon"><i class="fas fa-clock" style="color: #6f42c1;"></i></div>
+        </div>
+    </div>
+</div>
+
+<!-- Legenda -->
+<div class="mb-3 d-flex gap-3 flex-wrap">
+    <span><span class="badge" style="background: #28a745;">■</span> Disponível</span>
+    <span><span class="badge" style="background: #dc3545;">■</span> Indisponível</span>
+    <span><span class="badge" style="background: #ffc107; color: #000;">■</span> Parcial/Intervalo</span>
+    <span><span class="badge" style="background: #6c757d;">■</span> Sem horário</span>
+</div>
+
+<!-- Grid de Horários -->
+<div class="schedule-grid">
+    <!-- Cabeçalho -->
+    <div class="schedule-cell header">Barbeiro</div>
+    {% for value, label in weekdays %}
+    <div class="schedule-cell header {% if value >= 6 %}weekend{% endif %}">
+        {{ label }}
+        <small style="font-weight: 300; font-size: 0.6rem; opacity: 0.7;">Dia {{ value }}</small>
+    </div>
+    {% endfor %}
+    
+    <!-- Corpo -->
+    {% for barber_id, data in barber_schedules.items %}
+        <div class="schedule-cell barber-name">
+            {{ data.barber.full_name|truncatechars:20 }}
+            <small style="font-size: 0.6rem; color: #6c757d;">{{ data.barber.specialty|default:"-" }}</small>
+        </div>
+        {% for value, label in weekdays %}
+            {% with schedule=data.schedules|dictsort:"day_of_week"|first %}
+                {% if schedule and schedule.day_of_week == value %}
+                    {% if schedule.is_available %}
+                        <div class="schedule-cell available">
+                            <span class="time-range">{{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</span>
+                            {% if schedule.break_start and schedule.break_end %}
+                            <span class="break-time">🍽️ {{ schedule.break_start|time:"H:i" }} - {{ schedule.break_end|time:"H:i" }}</span>
+                            {% endif %}
+                            <span class="status-badge available">Disponível</span>
+                            <a href="{% url 'barbers:schedule_edit' schedule.pk %}" class="btn btn-sm btn-outline-primary edit-btn">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="schedule-cell unavailable">
+                            <span class="time-range">{{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</span>
+                            <span class="status-badge unavailable">Indisponível</span>
+                            <a href="{% url 'barbers:schedule_edit' schedule.pk %}" class="btn btn-sm btn-outline-primary edit-btn">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="schedule-cell" style="background: #f8f9fa; opacity: 0.5;">
+                        <span class="text-muted" style="font-size: 0.8rem;">-</span>
+                        <a href="{% url 'barbers:schedule_add' %}?barber={{ barber_id }}&day={{ value }}" class="btn btn-sm btn-outline-secondary edit-btn" style="opacity: 0.7;">
+                            <i class="fas fa-plus"></i>
+                        </a>
+                    </div>
+                {% endif %}
+            {% endwith %}
+        {% endfor %}
+    {% empty %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #6c757d;">
+            <i class="fas fa-user-tie fa-3x mb-3 d-block"></i>
+            <p>Nenhum barbeiro cadastrado. <a href="{% url 'barbers:add' %}">Cadastre um barbeiro</a> para começar.</p>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Informações adicionais -->
+<div class="mt-4 alert alert-info">
+    <i class="fas fa-info-circle"></i>
+    <strong>Como funciona:</strong>
+    <ul class="mb-0 mt-2">
+        <li><strong>Disponível</strong> - O barbeiro está disponível neste dia e horário</li>
+        <li><strong>Indisponível</strong> - O barbeiro não está disponível neste dia</li>
+        <li><strong>Parcial</strong> - O barbeiro tem intervalo ou horário reduzido</li>
+        <li><strong>Sem horário</strong> - Nenhum horário cadastrado para este dia</li>
+        <li>Clique em <i class="fas fa-plus"></i> para adicionar um novo horário</li>
+        <li>Clique em <i class="fas fa-edit"></i> Editar para modificar um horário existente</li>
+    </ul>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh a cada 30 segundos
+    setInterval(function() {
+        // Verificar se há mudanças sem recarregar a página
+        fetch(window.location.href)
+            .then(response => response.text())
+            .then(html => {
+                // Atualizar apenas os cards de resumo
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const newSummary = doc.querySelector('.summary-cards');
+                const currentSummary = document.querySelector('.summary-cards');
+                if (newSummary && currentSummary) {
+                    currentSummary.innerHTML = newSummary.innerHTML;
+                }
+                
+                // Atualizar o grid de horários
+                const newGrid = doc.querySelector('.schedule-grid');
+                const currentGrid = document.querySelector('.schedule-grid');
+                if (newGrid && currentGrid) {
+                    currentGrid.innerHTML = newGrid.innerHTML;
+                }
+            })
+            .catch(error => console.log('Erro ao atualizar:', error));
+    }, 30000); // 30 segundos
+    
+    // Adicionar tooltips
+    document.querySelectorAll('[title]').forEach(el => {
+        el.addEventListener('mouseenter', function(e) {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip-custom';
+            tooltip.textContent = this.getAttribute('title');
+            tooltip.style.cssText = `
+                position: fixed;
+                background: #1a1a2e;
+                color: white;
+                padding: 5px 12px;
+                border-radius: 8px;
+                font-size: 0.8rem;
+                z-index: 1000;
+                pointer-events: none;
+                top: ${e.clientY + 10}px;
+                left: ${e.clientX + 10}px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            `;
+            document.body.appendChild(tooltip);
+        });
+        
+        el.addEventListener('mouseleave', function() {
+            document.querySelectorAll('.tooltip-custom').forEach(t => t.remove());
+        });
+    });
+});
+</script>
+<style>
+    /* Animações suaves */
+    .schedule-cell {
+        transition: all 0.3s ease;
+    }
+    .schedule-cell:hover {
+        transform: scale(1.02);
+        z-index: 10;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .summary-card {
+        transition: all 0.3s ease;
+    }
+    .summary-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}

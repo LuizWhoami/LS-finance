@@ -1,8 +1,13 @@
+"""
+Modelos para o app Finance.
+"""
+
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
+from decimal import Decimal
 
 from apps.core.models import BaseModel
 from apps.core.validators import validate_positive
@@ -10,6 +15,7 @@ from apps.core.exceptions import InvalidStatusTransition
 
 
 class Transaction(BaseModel):
+    """Modelo que representa uma transação financeira."""
     
     class TransactionType(models.TextChoices):
         INCOME = 'income', 'Receita'
@@ -139,6 +145,7 @@ class Transaction(BaseModel):
 
 
 class CashRegister(BaseModel):
+    """Modelo que representa o caixa da barbearia."""
     
     class Status(models.TextChoices):
         OPEN = 'open', 'Aberto'
@@ -285,6 +292,7 @@ class CashRegister(BaseModel):
 
 
 class Commission(BaseModel):
+    """Modelo que representa a comissão de um barbeiro."""
     
     class CommissionStatus(models.TextChoices):
         PENDING = 'pending', 'Pendente'
@@ -372,3 +380,152 @@ class Commission(BaseModel):
         self.paid_at = timezone.now()
         self.paid_by = user
         self.save(update_fields=['status', 'paid_at', 'paid_by'])
+
+
+class FixedExpense(BaseModel):
+    """Modelo para gastos fixos da barbearia."""
+    
+    class ExpenseCategory(models.TextChoices):
+        RENT = 'rent', 'Aluguel'
+        SALARY = 'salary', 'Salário'
+        WATER = 'water', 'Água'
+        ELECTRICITY = 'electricity', 'Energia'
+        INTERNET = 'internet', 'Internet'
+        SUPPLIES = 'supplies', 'Suprimentos'
+        MARKETING = 'marketing', 'Marketing'
+        MAINTENANCE = 'maintenance', 'Manutenção'
+        INSURANCE = 'insurance', 'Seguro'
+        OTHER = 'other', 'Outros'
+    
+    class Frequency(models.TextChoices):
+        MONTHLY = 'monthly', 'Mensal'
+        QUARTERLY = 'quarterly', 'Trimestral'
+        SEMESTER = 'semester', 'Semestral'
+        ANNUAL = 'annual', 'Anual'
+        ONCE = 'once', 'Única'
+    
+    name = models.CharField(
+        _('Nome do Gasto'),
+        max_length=100,
+        db_index=True
+    )
+    
+    category = models.CharField(
+        _('Categoria'),
+        max_length=20,
+        choices=ExpenseCategory.choices,
+        db_index=True
+    )
+    
+    amount = models.DecimalField(
+        _('Valor'),
+        max_digits=10,
+        decimal_places=2,
+        validators=[validate_positive],
+        help_text='Valor do gasto'
+    )
+    
+    frequency = models.CharField(
+        _('Frequência'),
+        max_length=20,
+        choices=Frequency.choices,
+        default=Frequency.MONTHLY,
+        db_index=True
+    )
+    
+    due_day = models.PositiveSmallIntegerField(
+        _('Dia de Vencimento'),
+        default=1,
+        validators=[MinValueValidator(1), MaxValueValidator(31)],
+        help_text='Dia do mês para vencimento (1-31)'
+    )
+    
+    description = models.TextField(
+        _('Descrição'),
+        max_length=300,
+        blank=True,
+        help_text='Detalhes adicionais do gasto'
+    )
+    
+    is_active = models.BooleanField(
+        _('Ativo'),
+        default=True,
+        db_index=True
+    )
+    
+    last_charged = models.DateField(
+        _('Última Cobrança'),
+        blank=True,
+        null=True,
+        help_text='Data da última cobrança realizada'
+    )
+    
+    next_charge = models.DateField(
+        _('Próxima Cobrança'),
+        blank=True,
+        null=True,
+        help_text='Data da próxima cobrança'
+    )
+    
+    class Meta:
+        verbose_name = _('Gasto Fixo')
+        verbose_name_plural = _('Gastos Fixos')
+        ordering = ['category', 'name']
+        indexes = [
+            models.Index(fields=['category', 'is_active']),
+            models.Index(fields=['next_charge']),
+        ]
+    
+    def __str__(self):
+        return f'{self.name} - R$ {self.amount} ({self.get_frequency_display()})'
+    
+    def calculate_next_charge(self):
+        """Calcula a próxima data de cobrança."""
+        from dateutil.relativedelta import relativedelta
+        from datetime import date
+        
+        today = date.today()
+        
+        if self.last_charged:
+            base_date = self.last_charged
+        else:
+            base_date = self.created_at.date() if self.created_at else today
+        
+        if self.frequency == self.Frequency.MONTHLY:
+            next_date = base_date + relativedelta(months=1)
+        elif self.frequency == self.Frequency.QUARTERLY:
+            next_date = base_date + relativedelta(months=3)
+        elif self.frequency == self.Frequency.SEMESTER:
+            next_date = base_date + relativedelta(months=6)
+        elif self.frequency == self.Frequency.ANNUAL:
+            next_date = base_date + relativedelta(years=1)
+        else:  # ONCE
+            next_date = None
+        
+        if next_date:
+            try:
+                next_date = next_date.replace(day=self.due_day)
+            except ValueError:
+                next_date = next_date.replace(day=28) + relativedelta(days=4)
+                next_date = next_date - relativedelta(days=next_date.day)
+        
+        return next_date
+    
+    def charge(self):
+        """Registra a cobrança do gasto fixo."""
+        from .models import Transaction
+        
+        transaction = Transaction.objects.create(
+            transaction_type=Transaction.TransactionType.EXPENSE,
+            payment_method=Transaction.PaymentMethod.CASH,
+            amount=self.amount,
+            description=f'Gasto Fixo: {self.name} ({self.get_category_display()})',
+            transaction_date=timezone.now(),
+            reference=f'fixed_expense_{self.id}'
+        )
+        
+        self.last_charged = timezone.now().date()
+        self.next_charge = self.calculate_next_charge()
+        self.save(update_fields=['last_charged', 'next_charge'])
+        
+        return transaction

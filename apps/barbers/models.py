@@ -315,3 +315,47 @@ class TimeOff(BaseModel):
     def duration_days(self):
         """Retorna o número de dias de afastamento."""
         return (self.end_date - self.start_date).days + 1
+
+    def is_available_for_appointment(self, start_time, end_time):
+        """Verifica se o barbeiro está disponível em um horário específico."""
+        from datetime import time
+        
+        # Verificar se o dia da semana está disponível
+        day_of_week = start_time.weekday() + 1  # Django: 0=Segunda, 6=Domingo
+        
+        # Buscar horário de trabalho para este dia
+        schedule = WorkSchedule.objects.filter(
+            barber=self,
+            day_of_week=day_of_week,
+            is_available=True
+        ).first()
+        
+        if not schedule:
+            return False
+        
+        # Verificar horário de início e término
+        start_time_only = start_time.time()
+        end_time_only = end_time.time()
+        
+        if start_time_only < schedule.start_time or end_time_only > schedule.end_time:
+            return False
+        
+        # Verificar intervalo de almoço
+        if schedule.break_start and schedule.break_end:
+            if start_time_only < schedule.break_end and end_time_only > schedule.break_start:
+                return False
+        
+        # Verificar se há conflitos com outros agendamentos
+        from apps.appointments.models import Appointment
+        conflicts = Appointment.objects.filter(
+            barber=self,
+            status__in=[
+                Appointment.AppointmentStatus.SCHEDULED,
+                Appointment.AppointmentStatus.CONFIRMED,
+                Appointment.AppointmentStatus.IN_PROGRESS
+            ],
+            start_time__lt=end_time,
+            end_time__gt=start_time
+        ).exists()
+        
+        return not conflicts

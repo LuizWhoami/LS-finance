@@ -153,7 +153,7 @@
     <div class="col-lg-6 mb-4">
         <div class="card">
             <div class="card-header">
-                <i class="fas fa-crown"></i> Serviços Mais Vendidos
+                <i class="fas fa-crown"></i> Serviços Mais Vendidos (Mês)
             </div>
             <div class="card-body">
                 <div class="table-responsive">
@@ -241,111 +241,92 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. Gráfico de Faturamento Diário
+    // Gráfico de Faturamento Diário
     const revenueCtx = document.getElementById('revenueChart').getContext('2d');
     const revenueData = {{ daily_revenue|safe }};
     
-    new Chart(revenueCtx, {
-        type: 'line',
-        data: {
-            labels: revenueData.map(item => item.date),
-            datasets: [{
-                label: 'Faturamento (R$)',
-                data: revenueData.map(item => item.total),
-                borderColor: '#0d6efd',
-                backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
+    if (revenueData && revenueData.length > 0) {
+        new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: revenueData.map(item => item.date),
+                datasets: [{
+                    label: 'Faturamento (R$)',
+                    data: revenueData.map(item => item.total),
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return 'R$ ' + value.toFixed(2);
-                        }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: function(value) { return 'R$ ' + value.toFixed(2); } }
                     }
                 }
             }
-        }
-    });
+        });
+    }
     
-    // 2. Gráfico de Status
+    // Gráfico de Status
     const statusCtx = document.getElementById('statusChart').getContext('2d');
     const statusData = {{ status_counts|safe }};
+    const statusLabels = Object.keys(statusData);
+    const statusValues = Object.values(statusData);
     
-    new Chart(statusCtx, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(statusData),
-            datasets: [{
-                data: Object.values(statusData),
-                backgroundColor: [
-                    '#0d6efd',  // Agendado
-                    '#198754',  // Confirmado
-                    '#ffc107',  // Em Andamento
-                    '#28a745',  // Concluído
-                    '#dc3545',  // Cancelado
-                    '#6c757d'   // Não Compareceu
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
+    if (statusLabels.length > 0) {
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusValues,
+                    backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#28a745', '#dc3545', '#6c757d']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
             }
-        }
-    });
+        });
+    }
     
-    // 3. Gráfico de Dias da Semana
+    // Gráfico de Dias da Semana
     const weekdayCtx = document.getElementById('weekdayChart').getContext('2d');
     const weekdayLabels = {{ weekday_labels|safe }};
     const weekdayCounts = {{ weekday_counts|safe }};
     
-    new Chart(weekdayCtx, {
-        type: 'bar',
-        data: {
-            labels: weekdayLabels,
-            datasets: [{
-                label: 'Agendamentos',
-                data: weekdayCounts,
-                backgroundColor: '#0d6efd',
-                borderRadius: 5
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
+    if (weekdayLabels.length > 0) {
+        new Chart(weekdayCtx, {
+            type: 'bar',
+            data: {
+                labels: weekdayLabels,
+                datasets: [{
+                    label: 'Agendamentos',
+                    data: weekdayCounts,
+                    backgroundColor: '#0d6efd',
+                    borderRadius: 5
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
                 }
             }
-        }
-    });
+        });
+    }
 });
 </script>
 {% endblock %}
