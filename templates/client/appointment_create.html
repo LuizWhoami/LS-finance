@@ -6,28 +6,201 @@
 {% block extra_css %}
 <style>
     .appointment-form-container {
-        max-width: 700px;
+        max-width: 800px;
         margin: 0 auto;
     }
     
-    .datetime-row {
+    .services-list {
+        margin-top: 15px;
+    }
+    
+    .service-item {
         display: flex;
-        gap: 15px;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin-bottom: 8px;
+        border-left: 4px solid #e94560;
+        animation: slideIn 0.3s ease-out;
     }
     
-    .datetime-row .col-date {
-        flex: 1;
+    .service-item .service-info {
+        display: flex;
+        flex-direction: column;
     }
     
-    .datetime-row .col-time {
-        flex: 1;
+    .service-item .service-name {
+        font-weight: 600;
+        color: #1a1a2e;
+    }
+    
+    .service-item .service-details {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .service-item .remove-service {
+        color: #dc3545;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        padding: 5px 10px;
+        border-radius: 50%;
+    }
+    
+    .service-item .remove-service:hover {
+        background: rgba(220, 53, 69, 0.1);
+        transform: scale(1.1);
+    }
+    
+    .add-service-btn {
+        width: 100%;
+        padding: 12px;
+        border: 2px dashed #dee2e6;
+        border-radius: 10px;
+        background: transparent;
+        color: #6c757d;
+        font-weight: 500;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    
+    .add-service-btn:hover {
+        border-color: #e94560;
+        color: #e94560;
+        background: rgba(233, 69, 96, 0.05);
+    }
+    
+    .service-select-modal {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        margin-top: 10px;
+        display: none;
+    }
+    
+    .service-select-modal.show {
+        display: block;
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    .service-option {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+    
+    .service-option:hover {
+        background: #f0f2f5;
+        border-color: #dee2e6;
+    }
+    
+    .service-option .service-price {
+        font-weight: 600;
+        color: #28a745;
+    }
+    
+    .service-option .service-duration {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .total-display {
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        margin-top: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .total-display .total-label {
+        font-size: 1rem;
+        opacity: 0.8;
+    }
+    
+    .total-display .total-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+    
+    .total-display .total-duration {
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .btn-submit {
+        background: linear-gradient(135deg, #e94560, #c0392b);
+        border: none;
+        color: white;
+        padding: 14px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s;
+        width: 100%;
+    }
+    
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(233, 69, 96, 0.3);
+    }
+    
+    .btn-submit:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .empty-services {
+        text-align: center;
+        padding: 30px;
+        color: #6c757d;
+    }
+    
+    .empty-services i {
+        font-size: 3rem;
+        margin-bottom: 10px;
+        opacity: 0.3;
     }
     
     .datetime-card {
         background: white;
-        border-radius: 15px;
-        padding: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border-radius: 12px;
+        padding: 15px;
         border: 2px solid #e9ecef;
         transition: all 0.3s;
     }
@@ -40,7 +213,7 @@
     .datetime-card label {
         font-weight: 600;
         color: #1a1a2e;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         display: block;
         margin-bottom: 5px;
     }
@@ -48,8 +221,8 @@
     .datetime-card input[type="date"],
     .datetime-card input[type="time"] {
         border: none;
-        padding: 10px 0;
-        font-size: 1.1rem;
+        padding: 8px 0;
+        font-size: 1rem;
         width: 100%;
         background: transparent;
         color: #1a1a2e;
@@ -59,18 +232,6 @@
     .datetime-card input[type="date"]:focus,
     .datetime-card input[type="time"]:focus {
         outline: none;
-    }
-    
-    .datetime-card input[type="date"]::-webkit-calendar-picker-indicator,
-    .datetime-card input[type="time"]::-webkit-calendar-picker-indicator {
-        filter: invert(0.4);
-        cursor: pointer;
-        padding: 5px;
-    }
-    
-    .datetime-card input[type="date"]::-webkit-calendar-picker-indicator:hover,
-    .datetime-card input[type="time"]::-webkit-calendar-picker-indicator:hover {
-        filter: invert(0.6);
     }
     
     .time-slots {
@@ -149,12 +310,6 @@
         margin-right: 10px;
     }
     
-    .error-slots {
-        text-align: center;
-        padding: 20px;
-        color: #dc3545;
-    }
-    
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
@@ -167,10 +322,6 @@
     }
     
     @media (max-width: 576px) {
-        .datetime-row {
-            flex-direction: column;
-            gap: 10px;
-        }
         .time-slots {
             grid-template-columns: repeat(2, 1fr);
         }
@@ -186,7 +337,7 @@
                 <h4>
                     <i class="fas fa-calendar-plus"></i> Agendar Serviço
                 </h4>
-                <p class="mb-0 small opacity-75">Preencha os dados abaixo para agendar seu horário</p>
+                <p class="mb-0 small opacity-75">Selecione os serviços e agende seu horário</p>
             </div>
             <div class="card-body">
                 <form method="post" id="appointmentForm">
@@ -200,7 +351,7 @@
                     
                     <div class="mb-3">
                         <label for="{{ form.customer_name.id_for_label }}" class="form-label">
-                            <i class="fas fa-user text-gradient"></i> Seu Nome
+                            <i class="fas fa-user"></i> Seu Nome
                         </label>
                         {{ form.customer_name }}
                         {% if form.customer_name.errors %}
@@ -210,7 +361,7 @@
                     
                     <div class="mb-3">
                         <label for="{{ form.customer_phone.id_for_label }}" class="form-label">
-                            <i class="fas fa-phone text-gradient"></i> Seu Telefone
+                            <i class="fas fa-phone"></i> Seu Telefone
                         </label>
                         {{ form.customer_phone }}
                         {% if form.customer_phone.errors %}
@@ -219,19 +370,19 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="{{ form.service.id_for_label }}" class="form-label">
-                            <i class="fas fa-cut text-gradient"></i> Serviço
+                        <label for="{{ form.customer_email.id_for_label }}" class="form-label">
+                            <i class="fas fa-envelope"></i> Seu Email (opcional)
                         </label>
-                        {{ form.service }}
-                        {% if form.service.errors %}
-                        <div class="text-danger small">{{ form.service.errors }}</div>
+                        {{ form.customer_email }}
+                        {% if form.customer_email.errors %}
+                        <div class="text-danger small">{{ form.customer_email.errors }}</div>
                         {% endif %}
-                        <small class="text-muted d-block mt-1">A duração do serviço será calculada automaticamente</small>
+                        <small class="text-muted">Para receber confirmação por email</small>
                     </div>
                     
                     <div class="mb-3">
                         <label for="{{ form.barber.id_for_label }}" class="form-label">
-                            <i class="fas fa-user-tie text-gradient"></i> Barbeiro
+                            <i class="fas fa-user-tie"></i> Barbeiro
                         </label>
                         {{ form.barber }}
                         {% if form.barber.errors %}
@@ -239,13 +390,74 @@
                         {% endif %}
                     </div>
                     
-                    <!-- Data e Hora Estilizadas -->
+                    <!-- Serviços -->
                     <div class="mb-3">
                         <label class="form-label">
-                            <i class="fas fa-clock text-gradient"></i> Data e Hora
+                            <i class="fas fa-cut"></i> Serviços
                         </label>
-                        <div class="datetime-row">
-                            <div class="col-date">
+                        
+                        <div class="services-list" id="servicesList">
+                            <div class="empty-services" id="emptyServices">
+                                <i class="fas fa-cut"></i>
+                                <p>Nenhum serviço selecionado</p>
+                                <small>Clique no botão abaixo para adicionar serviços</small>
+                            </div>
+                        </div>
+                        
+                        <button type="button" class="add-service-btn" id="addServiceBtn">
+                            <i class="fas fa-plus"></i> Adicionar Serviço
+                        </button>
+                        
+                        <!-- Modal de seleção de serviços -->
+                        <div class="service-select-modal" id="serviceSelectModal">
+                            <h6 class="mb-3">Selecione um serviço</h6>
+                            <div class="service-list-options" id="serviceListOptions">
+                                {% if services %}
+                                    {% for service in services %}
+                                    <div class="service-option" data-service-id="{{ service.id }}" 
+                                         data-service-name="{{ service.name }}"
+                                         data-service-price="{{ service.price }}"
+                                         data-service-duration="{{ service.duration_minutes }}">
+                                        <div>
+                                            <strong>{{ service.name }}</strong>
+                                            <div class="service-duration">
+                                                <i class="fas fa-clock"></i> {{ service.duration_formatted }}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span class="service-price">R$ {{ service.price }}</span>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <p class="text-muted">Nenhum serviço disponível no momento.</p>
+                                {% endif %}
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm mt-2" id="closeServiceModal">
+                                Fechar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Total -->
+                    <div class="total-display" id="totalDisplay">
+                        <div>
+                            <div class="total-label">Total do Agendamento</div>
+                            <div class="total-duration" id="totalDuration">0 min</div>
+                        </div>
+                        <div class="total-value" id="totalPrice">R$ 0,00</div>
+                    </div>
+                    
+                    <!-- Campo oculto para serviços -->
+                    {{ form.service_items }}
+                    
+                    <!-- Data e Hora -->
+                    <div class="mb-3 mt-3">
+                        <label class="form-label">
+                            <i class="fas fa-clock"></i> Data e Hora
+                        </label>
+                        <div class="row">
+                            <div class="col-md-6">
                                 <div class="datetime-card">
                                     <label for="{{ form.appointment_date.id_for_label }}">📅 Data</label>
                                     {{ form.appointment_date }}
@@ -254,7 +466,7 @@
                                     {% endif %}
                                 </div>
                             </div>
-                            <div class="col-time">
+                            <div class="col-md-6">
                                 <div class="datetime-card">
                                     <label for="{{ form.appointment_time.id_for_label }}">🕐 Horário</label>
                                     {{ form.appointment_time }}
@@ -264,7 +476,7 @@
                                 </div>
                             </div>
                         </div>
-                        <small class="text-muted d-block mt-1">Horário de funcionamento: 08:00 às 20:00</small>
+                        <small class="text-muted">Horário de funcionamento: 08:00 às 20:00</small>
                     </div>
                     
                     <!-- Sugestões de Horários -->
@@ -282,7 +494,7 @@
                     
                     <div class="mb-3">
                         <label for="{{ form.notes.id_for_label }}" class="form-label">
-                            <i class="fas fa-sticky-note text-gradient"></i> Observações
+                            <i class="fas fa-sticky-note"></i> Observações
                         </label>
                         {{ form.notes }}
                         {% if form.notes.errors %}
@@ -291,7 +503,7 @@
                     </div>
                     
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-submit" id="submitBtn">
+                        <button type="submit" class="btn-submit" id="submitBtn" disabled>
                             <i class="fas fa-check"></i> Confirmar Agendamento
                         </button>
                         <a href="{% url 'client:home' %}" class="btn btn-outline-secondary">
@@ -303,11 +515,12 @@
         </div>
         
         <div class="form-info-card mt-3">
-            <h6><i class="fas fa-info-circle text-gradient"></i> Informações importantes</h6>
+            <h6><i class="fas fa-info-circle"></i> Informações importantes</h6>
             <ul>
                 <li>Chegue com 10 minutos de antecedência</li>
                 <li>Cancelamentos devem ser feitos com 2 horas de antecedência</li>
                 <li>Em caso de atraso, entre em contato</li>
+                <li>Você pode selecionar múltiplos serviços</li>
             </ul>
         </div>
     </div>
@@ -317,6 +530,19 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const servicesList = document.getElementById('servicesList');
+    const emptyServices = document.getElementById('emptyServices');
+    const addServiceBtn = document.getElementById('addServiceBtn');
+    const serviceSelectModal = document.getElementById('serviceSelectModal');
+    const closeServiceModal = document.getElementById('closeServiceModal');
+    const serviceOptions = document.querySelectorAll('.service-option');
+    const totalPrice = document.getElementById('totalPrice');
+    const totalDuration = document.getElementById('totalDuration');
+    const serviceItemsField = document.querySelector('#{{ form.service_items.id_for_label }}');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    let selectedServices = [];
+    
     // Máscara para telefone
     const phoneInput = document.querySelector('#{{ form.customer_phone.id_for_label }}');
     if (phoneInput) {
@@ -335,31 +561,113 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Configurar horário mínimo e máximo
-    const timeInput = document.querySelector('#{{ form.appointment_time.id_for_label }}');
-    if (timeInput) {
-        timeInput.setAttribute('min', '08:00');
-        timeInput.setAttribute('max', '20:00');
-    }
+    // Adicionar serviço
+    addServiceBtn.addEventListener('click', function() {
+        serviceSelectModal.classList.toggle('show');
+    });
     
-    // Elementos para buscar horários
-    const dateInput = document.querySelector('#{{ form.appointment_date.id_for_label }}');
-    const barberSelect = document.querySelector('#{{ form.barber.id_for_label }}');
-    const serviceSelect = document.querySelector('#{{ form.service.id_for_label }}');
-    const timeSlots = document.getElementById('timeSlots');
-    const timeField = document.querySelector('#{{ form.appointment_time.id_for_label }}');
+    closeServiceModal.addEventListener('click', function() {
+        serviceSelectModal.classList.remove('show');
+    });
     
-    function getAvailableSlots() {
-        const date = dateInput.value;
-        const barber = barberSelect.value;
-        const service = serviceSelect.value;
+    // Selecionar serviço
+    serviceOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            const id = parseInt(this.dataset.serviceId);
+            const name = this.dataset.serviceName;
+            const price = parseFloat(this.dataset.servicePrice);
+            const duration = parseInt(this.dataset.serviceDuration);
+            
+            // Verificar se já está selecionado
+            if (selectedServices.some(s => s.id === id)) {
+                alert('Este serviço já foi adicionado!');
+                return;
+            }
+            
+            selectedServices.push({ id, name, price, duration });
+            renderServices();
+            updateTotal();
+            serviceSelectModal.classList.remove('show');
+        });
+    });
+    
+    // Renderizar serviços selecionados
+    function renderServices() {
+        servicesList.innerHTML = '';
         
-        if (!date || !barber || !service) {
-            timeSlots.innerHTML = '<div class="col-12 text-muted small">Selecione data, barbeiro e serviço para ver horários disponíveis</div>';
+        if (selectedServices.length === 0) {
+            servicesList.innerHTML = `
+                <div class="empty-services">
+                    <i class="fas fa-cut"></i>
+                    <p>Nenhum serviço selecionado</p>
+                    <small>Clique no botão abaixo para adicionar serviços</small>
+                </div>
+            `;
+            submitBtn.disabled = true;
             return;
         }
         
-        // Mostrar loading
+        submitBtn.disabled = false;
+        
+        selectedServices.forEach((service, index) => {
+            const div = document.createElement('div');
+            div.className = 'service-item';
+            div.innerHTML = `
+                <div class="service-info">
+                    <span class="service-name">${service.name}</span>
+                    <span class="service-details">
+                        <i class="fas fa-clock"></i> ${service.duration}min | R$ ${service.price.toFixed(2)}
+                    </span>
+                </div>
+                <button type="button" class="remove-service" data-index="${index}">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            servicesList.appendChild(div);
+        });
+        
+        // Remover serviço
+        document.querySelectorAll('.remove-service').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const index = parseInt(this.dataset.index);
+                selectedServices.splice(index, 1);
+                renderServices();
+                updateTotal();
+                updateSlots();
+            });
+        });
+    }
+    
+    // Atualizar total
+    function updateTotal() {
+        const total = selectedServices.reduce((sum, s) => sum + s.price, 0);
+        const duration = selectedServices.reduce((sum, s) => sum + s.duration, 0);
+        
+        totalPrice.textContent = `R$ ${total.toFixed(2)}`;
+        totalDuration.textContent = `${duration} min`;
+        
+        serviceItemsField.value = JSON.stringify(selectedServices.map(s => ({
+            id: s.id,
+            name: s.name,
+            price: s.price,
+            duration: s.duration
+        })));
+        
+        updateSlots();
+    }
+    
+    // Atualizar horários disponíveis
+    function updateSlots() {
+        const date = document.querySelector('#{{ form.appointment_date.id_for_label }}').value;
+        const barber = document.querySelector('#{{ form.barber.id_for_label }}').value;
+        const serviceIds = selectedServices.map(s => s.id).join(',');
+        const timeSlots = document.getElementById('timeSlots');
+        
+        if (!date || !barber || selectedServices.length === 0) {
+            timeSlots.innerHTML = '<div class="col-12 text-muted small">Selecione data, barbeiro e serviços para ver horários disponíveis</div>';
+            return;
+        }
+        
         timeSlots.innerHTML = `
             <div class="loading-slots">
                 <span class="spinner"></span>
@@ -367,27 +675,22 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         
-        // Buscar horários disponíveis via AJAX
-        fetch(`/cliente/api/available-slots/?date=${date}&barber=${barber}&service=${service}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Erro ao buscar horários');
-                }
-                return response.json();
-            })
+        fetch(`/cliente/api/available-slots/?date=${date}&barber=${barber}&services=${serviceIds}`)
+            .then(response => response.json())
             .then(data => {
-                console.log('Dados recebidos:', data);
                 renderSlots(data);
             })
             .catch(error => {
                 console.error('Erro ao buscar horários:', error);
-                timeSlots.innerHTML = `<div class="error-slots">❌ ${error.message || 'Erro ao carregar horários. Tente novamente.'}</div>`;
+                timeSlots.innerHTML = '<div class="col-12 text-danger small">Erro ao carregar horários. Tente novamente.</div>';
             });
     }
     
     function renderSlots(data) {
+        const timeSlots = document.getElementById('timeSlots');
+        
         if (data.error) {
-            timeSlots.innerHTML = `<div class="error-slots">❌ ${data.error}</div>`;
+            timeSlots.innerHTML = `<div class="col-12 text-danger small">${data.error}</div>`;
             return;
         }
         
@@ -402,8 +705,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const slotDiv = document.createElement('div');
             slotDiv.className = `time-slot ${slot.status}`;
             slotDiv.dataset.time = slot.time;
-            slotDiv.dataset.start = slot.start;
-            slotDiv.dataset.end = slot.end;
             
             const statusText = slot.label || slot.status;
             
@@ -414,16 +715,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (slot.status === 'available') {
                 slotDiv.addEventListener('click', function() {
-                    // Remover seleção anterior
                     document.querySelectorAll('.time-slot.selected').forEach(el => {
                         el.classList.remove('selected');
                     });
-                    
-                    // Selecionar este slot
                     this.classList.add('selected');
                     
-                    // Atualizar campo de hora
-                    timeField.value = this.dataset.time;
+                    const timeInput = document.querySelector('#{{ form.appointment_time.id_for_label }}');
+                    timeInput.value = this.dataset.time;
                 });
             }
             
@@ -431,23 +729,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Event listeners para atualizar horários
-    dateInput.addEventListener('change', getAvailableSlots);
-    barberSelect.addEventListener('change', function() {
-        if (dateInput.value && serviceSelect.value) {
-            getAvailableSlots();
-        }
-    });
-    serviceSelect.addEventListener('change', function() {
-        if (dateInput.value && barberSelect.value) {
-            getAvailableSlots();
+    // Event listeners
+    document.querySelector('#{{ form.appointment_date.id_for_label }}').addEventListener('change', updateSlots);
+    document.querySelector('#{{ form.barber.id_for_label }}').addEventListener('change', function() {
+        if (selectedServices.length > 0) {
+            updateSlots();
         }
     });
     
-    // Carregar horários iniciais se todos os campos estiverem preenchidos
-    if (dateInput.value && barberSelect.value && serviceSelect.value) {
-        getAvailableSlots();
-    }
+    // Inicializar
+    renderServices();
+    updateTotal();
 });
 </script>
 {% endblock %}

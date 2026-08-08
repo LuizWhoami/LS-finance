@@ -9,6 +9,9 @@
 <a href="{% url 'finance:add_transaction' %}" class="btn btn-primary">
     <i class="fas fa-plus"></i> Nova Transação
 </a>
+<a href="{% url 'finance:dashboard' %}" class="btn btn-outline-secondary">
+    <i class="fas fa-arrow-left"></i> Voltar
+</a>
 {% endblock %}
 
 {% block content %}
@@ -88,13 +91,13 @@
                         <td>{{ transaction.barber|default:"-" }}</td>
                         <td>R$ {{ transaction.amount }}</td>
                         <td>
-                            <a href="{% url 'finance:detail' transaction.pk %}" class="btn btn-sm btn-info" title="Visualizar">
+                            <a href="{% url 'finance:transaction_detail' transaction.pk %}" class="btn btn-sm btn-info" title="Visualizar">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="{% url 'finance:edit' transaction.pk %}" class="btn btn-sm btn-warning" title="Editar">
+                            <a href="{% url 'finance:transaction_edit' transaction.pk %}" class="btn btn-sm btn-warning" title="Editar">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="{% url 'finance:delete' transaction.pk %}" class="btn btn-sm btn-danger" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir esta transação?')">
+                            <a href="{% url 'finance:transaction_delete' transaction.pk %}" class="btn btn-sm btn-danger" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir esta transação?')">
                                 <i class="fas fa-trash"></i>
                             </a>
                         </td>

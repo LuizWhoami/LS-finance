@@ -11,11 +11,17 @@
                 <i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão
             </div>
             <div class="card-body">
-                <p>Tem certeza que deseja excluir esta transação?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle"></i>
+                    A transação será <strong>desativada</strong>, mas os dados permanecerão no sistema para histórico.
+                </div>
+                
                 <p><strong>Descrição:</strong> {{ transaction.description }}</p>
                 <p><strong>Valor:</strong> R$ {{ transaction.amount }}</p>
                 <p><strong>Data:</strong> {{ transaction.transaction_date|date:"d/m/Y H:i" }}</p>
-                <p class="text-muted small">A transação será desativada, mas os dados permanecerão no sistema.</p>
+                <p><strong>Tipo:</strong> {{ transaction.get_transaction_type_display }}</p>
+                
+                <p class="text-muted small">Esta ação não pode ser desfeita.</p>
                 
                 <form method="post">
                     {% csrf_token %}

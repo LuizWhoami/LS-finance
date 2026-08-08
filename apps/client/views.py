@@ -12,14 +12,16 @@ from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.db.models import Q
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.http import JsonResponse
 from datetime import datetime, timedelta
+import json
+from decimal import Decimal
 
 from apps.services.models import Service
 from apps.barbers.models import Barber, WorkSchedule
 from apps.customers.models import Customer
-from apps.appointments.models import Appointment
+from apps.appointments.models import Appointment, AppointmentItem
 from apps.core.exceptions import AppointmentConflictError
 
 from .forms import ClientAppointmentForm, ClientRegistrationForm
@@ -67,11 +69,19 @@ class ClientBarberListView(ListView):
 
 
 class ClientAppointmentCreateView(CreateView):
-    """Cliente cria um agendamento com validação."""
+    """Cliente cria um agendamento com múltiplos serviços."""
     model = Appointment
     form_class = ClientAppointmentForm
     template_name = 'client/appointment_create.html'
     success_url = reverse_lazy('client:appointments')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['services'] = Service.objects.filter(
+            status='active', 
+            is_active=True
+        )
+        return context
 
     def get_initial(self):
         initial = super().get_initial()
@@ -79,9 +89,15 @@ class ClientAppointmentCreateView(CreateView):
         if service_id:
             try:
                 service = Service.objects.get(id=service_id, is_active=True)
-                initial['service'] = service
+                initial['service_items'] = json.dumps([{
+                    'id': service.id,
+                    'name': service.name,
+                    'price': str(service.price),
+                    'duration': service.duration_minutes
+                }])
             except Service.DoesNotExist:
                 pass
+        
         barber_id = self.request.GET.get('barber')
         if barber_id:
             try:
@@ -89,54 +105,80 @@ class ClientAppointmentCreateView(CreateView):
                 initial['barber'] = barber
             except Barber.DoesNotExist:
                 pass
+        
         return initial
 
+    @transaction.atomic
     def form_valid(self, form):
         try:
             customer_name = form.cleaned_data.get('customer_name')
             customer_phone = form.cleaned_data.get('customer_phone')
+            customer_email = form.cleaned_data.get('customer_email')
+            service_items_json = form.cleaned_data.get('service_items')
+            start_time = form.cleaned_data.get('start_time')
             
-            customer = Customer.objects.filter(phone=customer_phone).first()
+            if not start_time:
+                messages.error(self.request, _('Selecione uma data e horário válidos.'))
+                return self.form_invalid(form)
             
-            if not customer and self.request.user.is_authenticated:
-                customer, created = Customer.objects.get_or_create(
-                    user=self.request.user,
-                    defaults={
-                        'full_name': customer_name,
-                        'phone': customer_phone,
-                        'email': self.request.user.email or '',
-                        'status': 'active'
-                    }
-                )
-            elif not customer:
+            if not service_items_json:
+                messages.error(self.request, _('Selecione pelo menos um serviço.'))
+                return self.form_invalid(form)
+            
+            service_items = json.loads(service_items_json)
+            if not service_items:
+                messages.error(self.request, _('Selecione pelo menos um serviço.'))
+                return self.form_invalid(form)
+            
+            # Buscar ou criar cliente
+            customer = None
+            if self.request.user.is_authenticated:
+                customer = Customer.objects.filter(user=self.request.user).first()
+            
+            if not customer:
+                customer = Customer.objects.filter(phone=customer_phone).first()
+            
+            if not customer:
                 customer = Customer.objects.create(
                     full_name=customer_name,
                     phone=customer_phone,
-                    email='',
+                    email=customer_email or '',
                     status='active'
                 )
-            
-            if customer and self.request.user.is_authenticated and not customer.user:
-                customer.user = self.request.user
+                if self.request.user.is_authenticated:
+                    customer.user = self.request.user
+                    customer.save()
+            else:
+                if customer.full_name != customer_name:
+                    customer.full_name = customer_name
+                if customer_email and customer.email != customer_email:
+                    customer.email = customer_email
+                if customer.phone != customer_phone:
+                    customer.phone = customer_phone
+                if self.request.user.is_authenticated and not customer.user:
+                    customer.user = self.request.user
                 customer.save()
             
-            if customer.full_name != customer_name:
-                customer.full_name = customer_name
-                customer.save()
+            total_duration = sum([item['duration'] for item in service_items])
+            total_price = Decimal('0.00')
+            for item in service_items:
+                total_price += Decimal(str(item['price']))
             
             appointment = form.save(commit=False)
             appointment.customer = customer
+            appointment.service_price = total_price
+            appointment.final_price = total_price
+            appointment.total_duration = total_duration
+            appointment.start_time = start_time
+            appointment.end_time = start_time + timedelta(minutes=total_duration)
+            appointment.discount = Decimal('0.00')
+            appointment.commission_amount = Decimal('0.00')
             
             if not self.request.user.is_authenticated:
                 appointment.session_key = self.request.session.session_key
                 if not appointment.session_key:
                     self.request.session.create()
                     appointment.session_key = self.request.session.session_key
-            
-            appointment.service_price = appointment.service.price
-            appointment.final_price = appointment.service.price
-            appointment.end_time = form.cleaned_data.get('end_time')
-            appointment.start_time = form.cleaned_data.get('start_time')
             
             try:
                 appointment.save()
@@ -146,6 +188,15 @@ class ClientAppointmentCreateView(CreateView):
                     _('Este horário já está ocupado para este barbeiro. Por favor, escolha outro horário.')
                 )
                 return self.form_invalid(form)
+            
+            for item_data in service_items:
+                service = Service.objects.get(id=item_data['id'])
+                AppointmentItem.objects.create(
+                    appointment=appointment,
+                    service=service,
+                    price=Decimal(str(item_data['price'])),
+                    duration_minutes=item_data['duration']
+                )
             
             messages.success(self.request, _('Agendamento realizado com sucesso!'))
             return super().form_valid(form)
@@ -162,7 +213,7 @@ class ClientAppointmentCreateView(CreateView):
 
 
 class ClientAppointmentListView(ListView):
-    """Lista de agendamentos do cliente (com ou sem login)."""
+    """Lista de agendamentos do cliente."""
     model = Appointment
     template_name = 'client/appointments.html'
     context_object_name = 'appointments'
@@ -175,19 +226,23 @@ class ClientAppointmentListView(ListView):
                 return Appointment.objects.filter(
                     customer=customer,
                     is_active=True
-                ).select_related('barber', 'service').order_by('-start_time')
+                ).exclude(
+                    status=Appointment.AppointmentStatus.CANCELLED
+                ).select_related('barber').prefetch_related('items', 'items__service').order_by('-start_time')
         else:
             session_key = self.request.session.session_key
             if session_key:
                 return Appointment.objects.filter(
                     session_key=session_key,
                     is_active=True
-                ).select_related('barber', 'service').order_by('-start_time')
+                ).exclude(
+                    status=Appointment.AppointmentStatus.CANCELLED
+                ).select_related('barber').prefetch_related('items', 'items__service').order_by('-start_time')
         return Appointment.objects.none()
 
 
 class ClientAppointmentCancelView(DetailView):
-    """Cliente cancela um agendamento (com ou sem login)."""
+    """Cliente cancela um agendamento - SOFT DELETE (mantém histórico)."""
     model = Appointment
     template_name = 'client/appointment_cancel.html'
     context_object_name = 'appointment'
@@ -196,22 +251,49 @@ class ClientAppointmentCancelView(DetailView):
         if self.request.user.is_authenticated:
             customer = Customer.objects.filter(user=self.request.user).first()
             if customer:
-                return Appointment.objects.filter(customer=customer, is_active=True)
+                return Appointment.objects.filter(
+                    customer=customer,
+                    is_active=True
+                ).exclude(
+                    status=Appointment.AppointmentStatus.CANCELLED
+                )
         else:
             session_key = self.request.session.session_key
             if session_key:
-                return Appointment.objects.filter(session_key=session_key, is_active=True)
+                return Appointment.objects.filter(
+                    session_key=session_key,
+                    is_active=True
+                ).exclude(
+                    status=Appointment.AppointmentStatus.CANCELLED
+                )
         return Appointment.objects.none()
 
     def post(self, request, *args, **kwargs):
         appointment = self.get_object()
-        reason = request.POST.get('reason', 'Cancelado pelo cliente')
+        
+        # Verificar se o cliente pode cancelar (2 horas de antecedência)
+        time_until = appointment.start_time - timezone.now()
+        if time_until.total_seconds() < 7200:
+            messages.error(
+                request, 
+                _('Cancelamentos devem ser feitos com pelo menos 2 horas de antecedência.')
+            )
+            return redirect('client:appointments')
         
         try:
-            appointment.cancel(user=request.user if request.user.is_authenticated else None, reason=reason)
-            messages.success(request, _('Agendamento cancelado com sucesso!'))
+            # SOFT DELETE - apenas mudar status, NÃO excluir do banco
+            appointment.cancel_appointment(
+                user=request.user if request.user.is_authenticated else None,
+                reason=request.POST.get('reason', 'Cancelado pelo cliente')
+            )
+            
+            messages.success(
+                request, 
+                _('Agendamento cancelado com sucesso! O horário está livre para novos agendamentos.')
+            )
+            
         except Exception as e:
-            messages.error(request, str(e))
+            messages.error(request, f'Erro ao cancelar agendamento: {str(e)}')
         
         return redirect('client:appointments')
 
@@ -261,22 +343,28 @@ class ClientRegisterView(CreateView):
 
 
 def get_available_slots(request):
-    """API para buscar horários disponíveis baseado nos horários de trabalho."""
+    """API para buscar horários disponíveis."""
     date_str = request.GET.get('date')
     barber_id = request.GET.get('barber')
-    service_id = request.GET.get('service')
+    service_ids = request.GET.get('services', '')
     
-    if not all([date_str, barber_id, service_id]):
+    if not all([date_str, barber_id, service_ids]):
         return JsonResponse({'error': 'Parâmetros incompletos'}, status=400)
     
     try:
         date = datetime.strptime(date_str, '%Y-%m-%d').date()
         barber = Barber.objects.get(id=barber_id)
-        service = Service.objects.get(id=service_id)
+        service_ids_list = [int(id) for id in service_ids.split(',') if id]
+        services = Service.objects.filter(id__in=service_ids_list, is_active=True)
+        
+        if not services:
+            return JsonResponse({'error': 'Nenhum serviço selecionado'}, status=400)
+        
+        total_duration = sum([s.duration_minutes for s in services])
+        
     except (ValueError, Barber.DoesNotExist, Service.DoesNotExist):
         return JsonResponse({'error': 'Dados inválidos'}, status=400)
     
-    # Verificar horário de trabalho do barbeiro para este dia
     day_of_week = date.isoweekday()
     schedule = WorkSchedule.objects.filter(
         barber=barber,
@@ -291,21 +379,18 @@ def get_available_slots(request):
             'message': 'Barbeiro não trabalha neste dia'
         })
     
-    # Gerar slots de horário com timezone-aware
     slots = []
     current_time = timezone.make_aware(datetime.combine(date, schedule.start_time))
     end_time = timezone.make_aware(datetime.combine(date, schedule.end_time))
-    service_duration = service.duration_minutes
     interval_minutes = 30
     now = timezone.now()
     
     while current_time < end_time:
-        slot_end = current_time + timedelta(minutes=service_duration)
+        slot_end = current_time + timedelta(minutes=total_duration)
         
         if slot_end > end_time:
             break
         
-        # Verificar intervalo
         is_lunch = False
         if schedule.break_start and schedule.break_end:
             break_start = timezone.make_aware(datetime.combine(date, schedule.break_start))
@@ -317,7 +402,7 @@ def get_available_slots(request):
             elif current_time >= break_start and current_time < break_end:
                 is_lunch = True
         
-        # Verificar conflitos
+        # Verificar conflitos apenas com agendamentos ATIVOS e NÃO CANCELADOS
         has_conflict = Appointment.objects.filter(
             barber=barber,
             is_active=True,
@@ -330,7 +415,6 @@ def get_available_slots(request):
             end_time__gt=current_time
         ).exists()
         
-        # Determinar status
         if is_lunch:
             status = 'lunch'
             label = '🍽️ Intervalo'
@@ -341,7 +425,6 @@ def get_available_slots(request):
             status = 'available'
             label = '✅ Disponível'
         
-        # Verificar se é futuro
         is_future = current_time > now
         
         if is_future and status == 'available':

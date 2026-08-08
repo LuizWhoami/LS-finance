@@ -1,7 +1,3 @@
-"""
-Configuração do admin para o app Accounts.
-"""
-
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
@@ -11,9 +7,7 @@ from .models import User, UserProfile
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    """
-    Admin personalizado para o modelo User.
-    """
+    """Admin personalizado para o modelo User."""
     
     list_display = [
         'username', 'email', 'get_full_name', 'user_type',
@@ -64,9 +58,7 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    """
-    Admin para o modelo UserProfile.
-    """
+    """Admin para o modelo UserProfile."""
     
     list_display = ['user', 'get_user_email', 'email_notifications', 'whatsapp_notifications']
     search_fields = ['user__username', 'user__email', 'user__first_name', 'user__last_name']
@@ -92,7 +84,6 @@ class UserProfileAdmin(admin.ModelAdmin):
     )
     
     def get_user_email(self, obj):
-        """Retorna o email do usuário."""
         return obj.user.email
     get_user_email.short_description = 'Email'
     get_user_email.admin_order_field = 'user__email'

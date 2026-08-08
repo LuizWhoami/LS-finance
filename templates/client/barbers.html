@@ -3,51 +3,115 @@
 
 {% block title %}Nossos Barbeiros{% endblock %}
 
+{% block extra_css %}
+<style>
+    .barber-card {
+        background: white;
+        border: none;
+        border-radius: 16px;
+        padding: 25px 15px;
+        text-align: center;
+        transition: all 0.4s;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        height: 100%;
+    }
+    .barber-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 8px 35px rgba(0,0,0,0.12);
+    }
+    .barber-card .avatar-wrapper {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 15px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid #e94560;
+        padding: 3px;
+        background: white;
+        position: relative;
+    }
+    .barber-card .avatar-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        transition: transform 0.4s;
+    }
+    .barber-card:hover .avatar-wrapper img {
+        transform: scale(1.05);
+    }
+    .barber-card .avatar-wrapper .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        color: rgba(255,255,255,0.3);
+        font-size: 3rem;
+        border-radius: 50%;
+    }
+    .barber-card .barber-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 2px;
+        color: #1a1a2e;
+    }
+    .barber-card .barber-specialty {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 8px;
+    }
+    .barber-card .btn-book {
+        background: linear-gradient(135deg, #e94560, #c0392b);
+        color: white;
+        border: none;
+        padding: 8px 25px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 10px;
+    }
+    .barber-card .btn-book:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 20px rgba(233, 69, 96, 0.4);
+        color: white;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-4">
-    <h1 class="section-title text-center">Nossos Barbeiros</h1>
+    <h1 class="text-center mb-4">Nossos Barbeiros</h1>
     <p class="text-center text-muted mb-5">Profissionais qualificados prontos para atender você</p>
     
     <div class="row">
         {% for barber in barbers %}
-        <div class="col-md-3 col-6 mb-4 fade-in-up">
-            <div class="card barber-card h-100">
-                {% if barber.user.avatar %}
-                <img src="{{ barber.user.avatar.url }}" alt="{{ barber.full_name }}" class="avatar">
-                {% else %}
-                <div class="avatar bg-light d-flex align-items-center justify-content-center mx-auto">
-                    <i class="fas fa-user fa-3x text-secondary"></i>
-                </div>
-                {% endif %}
-                <h6>{{ barber.full_name }}</h6>
-                <small class="text-muted">{{ barber.specialty|default:"Profissional" }}</small>
-                <div class="rating">
-                    {% if barber.rating > 0 %}
-                        {% for i in "12345"|make_list %}
-                            {% if forloop.counter <= barber.rating %}
-                            ★
-                            {% else %}
-                            ☆
-                            {% endif %}
-                        {% endfor %}
-                        <small>({{ barber.rating }})</small>
+        <div class="col-md-3 col-6 mb-4">
+            <div class="barber-card">
+                <div class="avatar-wrapper">
+                    {% if barber.image %}
+                    <img src="{{ barber.image.url }}" alt="{{ barber.full_name }}" loading="lazy">
                     {% else %}
-                        <span class="text-muted">Sem avaliações</span>
+                    <div class="avatar-placeholder">
+                        <i class="fas fa-user"></i>
+                    </div>
                     {% endif %}
                 </div>
-                <div class="mt-2">
-                    <small class="text-muted">{{ barber.total_services }} serviços</small>
-                </div>
-                <a href="{% url 'client:appointment_create' %}?barber={{ barber.id }}" class="btn btn-primary btn-sm mt-2">
+                <h5 class="barber-name">{{ barber.full_name }}</h5>
+                <p class="barber-specialty">{{ barber.specialty|default:"Profissional" }}</p>
+                <a href="{% url 'client:appointment_create' %}?barber={{ barber.id }}" class="btn-book">
                     Agendar
                 </a>
             </div>
         </div>
         {% empty %}
         <div class="col-12 text-center py-5">
-            <i class="fas fa-user-tie fa-4x text-muted mb-3"></i>
-            <h4>Nenhum barbeiro disponível</h4>
-            <p class="text-muted">Em breve teremos novidades!</p>
+            <i class="fas fa-user-tie fa-3x text-muted mb-3"></i>
+            <p class="text-muted">Nenhum barbeiro disponível no momento.</p>
         </div>
         {% endfor %}
     </div>

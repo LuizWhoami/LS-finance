@@ -7,14 +7,6 @@
 
 {% block extra_css %}
 <style>
-    /* ============================================================
-       ESTILOS DO DASHBOARD FINANCEIRO
-       ============================================================ */
-    .finance-container {
-        padding: 10px 0;
-    }
-    
-    /* Cards de Resumo */
     .stat-card {
         border: none;
         border-radius: 16px;
@@ -52,7 +44,6 @@
         background: rgba(255,255,255,0.2);
     }
     
-    /* Cards de Detalhamento */
     .detail-card {
         border: none;
         border-radius: 16px;
@@ -78,7 +69,6 @@
         padding: 20px;
     }
     
-    /* Itens de Receita */
     .revenue-item {
         display: flex;
         justify-content: space-between;
@@ -105,20 +95,40 @@
         color: #495057;
     }
     
-    /* Progress Bars */
-    .progress-custom {
-        height: 8px;
-        border-radius: 4px;
-        background: #e9ecef;
+    .plans-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 10px;
+    }
+    .plan-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border: 1px solid #f0f2f5;
+        text-align: center;
+        transition: all 0.3s;
+    }
+    .plan-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .plan-card .plan-price {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #e94560;
+    }
+    .plan-card .plan-name {
+        font-weight: 600;
+        color: #1a1a2e;
+    }
+    .plan-card .plan-features {
+        font-size: 0.8rem;
+        color: #6c757d;
         margin-top: 5px;
     }
-    .progress-custom .progress-bar-custom {
-        height: 100%;
-        border-radius: 4px;
-        transition: width 1s ease;
-    }
     
-    /* Filtros */
     .filter-bar {
         background: white;
         padding: 16px 20px;
@@ -146,34 +156,22 @@
         border-color: #e94560;
         color: #e94560;
     }
-    
     .filter-bar .btn-action {
         border-radius: 25px;
         padding: 6px 20px;
         font-size: 0.85rem;
     }
     
-    /* Gráficos */
     .chart-container {
         position: relative;
         height: 280px;
     }
-    .chart-container-sm {
-        position: relative;
-        height: 200px;
-    }
     
-    /* Cores */
     .text-income { color: #28a745; }
     .text-expense { color: #dc3545; }
     .text-commission { color: #ffc107; }
     .text-profit { color: #0d6efd; }
-    .bg-income { background: #28a745; }
-    .bg-expense { background: #dc3545; }
-    .bg-commission { background: #ffc107; }
-    .bg-profit { background: #0d6efd; }
     
-    /* Responsivo */
     @media (max-width: 768px) {
         .stat-card .stat-number {
             font-size: 1.6rem;
@@ -184,6 +182,9 @@
         }
         .filter-bar .btn-group {
             flex-wrap: wrap;
+        }
+        .plans-grid {
+            grid-template-columns: 1fr;
         }
     }
 </style>
@@ -219,7 +220,6 @@
 {% block content %}
 <div class="finance-container">
 
-<!-- Período -->
 <div class="alert alert-info d-flex justify-content-between align-items-center">
     <div>
         <i class="fas fa-calendar-alt"></i>
@@ -229,12 +229,12 @@
     <div>
         <span class="badge bg-primary">{{ total_appointments }} agendamentos</span>
         <span class="badge bg-success">{{ completed_appointments }} concluídos</span>
+        <span class="badge bg-info">{{ active_subscriptions }} assinaturas</span>
+        <span class="badge bg-warning">{{ total_products }} produtos</span>
     </div>
 </div>
 
-<!-- ============================================================
-     CARDS DE RESUMO GERAL
-     ============================================================ -->
+<!-- Cards de Resumo Geral -->
 <div class="row">
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card stat-card bg-primary text-white">
@@ -243,7 +243,7 @@
                 <div class="stat-number">R$ {{ total_revenue|floatformat:2 }}</div>
                 <div class="stat-label">Receita Total</div>
                 <div class="stat-change">
-                    <i class="fas fa-arrow-up"></i> {{ growth_percentage|default:"0" }}%
+                    <i class="fas fa-arrow-up"></i> {{ profit_margin|default:"0" }}% margem
                 </div>
             </div>
         </div>
@@ -255,9 +255,6 @@
                 <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
                 <div class="stat-number">R$ {{ total_profit|floatformat:2 }}</div>
                 <div class="stat-label">Lucro Líquido</div>
-                <div class="stat-change">
-                    <i class="fas fa-arrow-up"></i> {{ profit_margin|default:"0" }}% margem
-                </div>
             </div>
         </div>
     </div>
@@ -289,11 +286,46 @@
     </div>
 </div>
 
-<!-- ============================================================
-     DETALHAMENTO DE RECEITAS E GASTOS
-     ============================================================ -->
+<!-- Planos de Assinatura -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card detail-card">
+            <div class="card-header">
+                <i class="fas fa-crown"></i> Planos de Assinatura
+                <span class="float-end text-muted small">Planos ativos</span>
+            </div>
+            <div class="card-body">
+                <div class="plans-grid">
+                    {% for plan in plans %}
+                    <div class="plan-card">
+                        <div class="plan-name">{{ plan.name }}</div>
+                        <div class="plan-price">R$ {{ plan.price }}</div>
+                        <div class="plan-features">
+                            {{ plan.get_billing_cycle_display }}
+                            {% if plan.free_services_per_month > 0 %}
+                            <br>{{ plan.free_services_per_month }} serviços grátis/mês
+                            {% endif %}
+                            {% if plan.discount_percentage > 0 %}
+                            <br>{{ plan.discount_percentage }}% de desconto
+                            {% endif %}
+                            {% if plan.priority_booking %}
+                            <br>⭐ Agendamento prioritário
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center text-muted py-3">
+                        Nenhum plano de assinatura disponível.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detalhamento de Receitas e Gastos -->
 <div class="row">
-    <!-- Receitas por Fonte -->
     <div class="col-lg-4 mb-4">
         <div class="card detail-card">
             <div class="card-header">
@@ -315,6 +347,13 @@
                     </span>
                 </div>
                 <div class="revenue-item">
+                    <span class="label"><i class="fas fa-box text-danger"></i> Produtos</span>
+                    <span>
+                        <span class="value text-income">R$ {{ revenue_products|floatformat:2 }}</span>
+                        <span class="badge-percent">{{ revenue_percent_products|default:"0" }}%</span>
+                    </span>
+                </div>
+                <div class="revenue-item">
                     <span class="label"><i class="fas fa-hand-holding-usd text-info"></i> Outras Receitas</span>
                     <span>
                         <span class="value text-income">R$ {{ other_income|floatformat:2 }}</span>
@@ -330,7 +369,6 @@
         </div>
     </div>
     
-    <!-- Gastos e Comissões -->
     <div class="col-lg-4 mb-4">
         <div class="card detail-card">
             <div class="card-header">
@@ -346,6 +384,10 @@
                     <span class="value text-expense">R$ {{ fixed_expenses_total|default:"0.00" }}</span>
                 </div>
                 <div class="revenue-item">
+                    <span class="label"><i class="fas fa-boxes text-danger"></i> Custo dos Produtos</span>
+                    <span class="value text-expense">R$ {{ cost_products|default:"0.00" }}</span>
+                </div>
+                <div class="revenue-item">
                     <span class="label"><i class="fas fa-receipt text-danger"></i> Outras Despesas</span>
                     <span class="value text-expense">R$ {{ other_expenses|default:"0.00" }}</span>
                 </div>
@@ -358,7 +400,6 @@
         </div>
     </div>
     
-    <!-- Resumo Final -->
     <div class="col-lg-4 mb-4">
         <div class="card detail-card border-success">
             <div class="card-header">
@@ -391,9 +432,7 @@
     </div>
 </div>
 
-<!-- ============================================================
-     GRÁFICOS
-     ============================================================ -->
+<!-- Gráficos -->
 <div class="row">
     <div class="col-lg-8 mb-4">
         <div class="card detail-card">
@@ -426,9 +465,7 @@
     </div>
 </div>
 
-<!-- ============================================================
-     ÚLTIMAS TRANSAÇÕES
-     ============================================================ -->
+<!-- Últimas Transações -->
 <div class="row">
     <div class="col-12">
         <div class="card detail-card">
@@ -468,13 +505,13 @@
                                     R$ {{ transaction.amount }}
                                 </td>
                                 <td>
-                                    <a href="{% url 'finance:detail' transaction.pk %}" class="btn btn-sm btn-info" title="Visualizar">
+                                    <a href="{% url 'finance:transaction_detail' transaction.pk %}" class="btn btn-sm btn-info" title="Visualizar">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{% url 'finance:edit' transaction.pk %}" class="btn btn-sm btn-warning" title="Editar">
+                                    <a href="{% url 'finance:transaction_edit' transaction.pk %}" class="btn btn-sm btn-warning" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="{% url 'finance:delete' transaction.pk %}" class="btn btn-sm btn-danger" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir esta transação?')">
+                                    <a href="{% url 'finance:transaction_delete' transaction.pk %}" class="btn btn-sm btn-danger" title="Excluir" onclick="return confirm('Tem certeza que deseja excluir esta transação?')">
                                         <i class="fas fa-trash"></i>
                                     </a>
                                 </td>
@@ -498,9 +535,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // ============================================================
-    // GRÁFICO DE EVOLUÇÃO DIÁRIA
-    // ============================================================
+    // Gráfico de Evolução Diária
     try {
         const dailyData = {{ daily_data|safe }};
         if (dailyData && dailyData.length > 0) {
@@ -509,53 +544,67 @@ document.addEventListener('DOMContentLoaded', function() {
                 type: 'bar',
                 data: {
                     labels: dailyData.map(item => item.date),
-                    datasets: [{
-                        label: 'Receita (R$)',
-                        data: dailyData.map(item => item.total),
-                        backgroundColor: 'rgba(13, 110, 253, 0.7)',
-                        borderColor: '#0d6efd',
-                        borderWidth: 2,
-                        borderRadius: 4,
-                        order: 1
-                    }]
+                    datasets: [
+                        {
+                            label: 'Agendamentos (R$)',
+                            data: dailyData.map(item => item.appointments),
+                            backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                            borderColor: '#0d6efd',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Assinaturas (R$)',
+                            data: dailyData.map(item => item.subscriptions),
+                            backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                            borderColor: '#28a745',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Produtos (R$)',
+                            data: dailyData.map(item => item.products),
+                            backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                            borderColor: '#dc3545',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Outras Receitas (R$)',
+                            data: dailyData.map(item => item.income),
+                            backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                            borderColor: '#ffc107',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: false
+                            position: 'top',
+                            labels: { font: { size: 10 } }
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return 'R$ ' + value.toFixed(2);
-                                }
-                            }
+                            ticks: { callback: function(value) { return 'R$ ' + value.toFixed(2); } }
                         },
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        }
+                        x: { grid: { display: false } }
                     }
                 }
             });
         }
-    } catch(e) {
-        console.log('Erro no gráfico diário:', e);
-    }
+    } catch(e) { console.log('Erro no gráfico diário:', e); }
     
-    // ============================================================
-    // GRÁFICO DE DISTRIBUIÇÃO
-    // ============================================================
+    // Gráfico de Distribuição
     try {
         const sourceData = {{ revenue_sources|safe }};
         if (sourceData && sourceData.length > 0) {
-            const colors = ['#0d6efd', '#28a745', '#ffc107', '#6f42c1'];
+            const colors = ['#0d6efd', '#28a745', '#dc3545', '#ffc107', '#6f42c1'];
             const ctx = document.getElementById('sourceChart').getContext('2d');
             new Chart(ctx, {
                 type: 'doughnut',
@@ -574,19 +623,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     plugins: {
                         legend: {
                             position: 'bottom',
-                            labels: {
-                                font: { size: 11 },
-                                padding: 10
-                            }
+                            labels: { font: { size: 11 }, padding: 10 }
                         }
                     },
                     cutout: '65%'
                 }
             });
         }
-    } catch(e) {
-        console.log('Erro no gráfico de distribuição:', e);
-    }
+    } catch(e) { console.log('Erro no gráfico de distribuição:', e); }
 });
 </script>
 {% endblock %}

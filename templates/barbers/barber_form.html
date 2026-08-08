@@ -10,7 +10,7 @@
     <div class="col-md-8 mx-auto">
         <div class="card">
             <div class="card-body">
-                <form method="post">
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     
                     {% if form.non_field_errors %}
@@ -70,6 +70,25 @@
                                 {% endif %}
                             </div>
                         </div>
+                    </div>
+                    
+                    <!-- Campo de Imagem -->
+                    <div class="mb-3">
+                        <label for="{{ form.image.id_for_label }}" class="form-label">
+                            <i class="fas fa-image"></i> Foto do Barbeiro
+                        </label>
+                        {% if form.instance.image %}
+                        <div class="mb-2">
+                            <img src="{{ form.instance.image.url }}" alt="{{ form.instance.full_name }}" style="max-width: 150px; max-height: 150px; border-radius: 12px; border: 2px solid #e9ecef;">
+                            <br>
+                            <small class="text-muted">Imagem atual</small>
+                        </div>
+                        {% endif %}
+                        {{ form.image }}
+                        {% if form.image.errors %}
+                        <div class="text-danger small">{{ form.image.errors }}</div>
+                        {% endif %}
+                        <small class="text-muted">Formatos: JPG, PNG, GIF. Tamanho máximo: 5MB</small>
                     </div>
                     
                     <div class="mb-3">

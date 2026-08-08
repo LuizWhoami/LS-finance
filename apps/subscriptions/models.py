@@ -126,37 +126,11 @@ class Plan(BaseModel):
     def __str__(self):
         return f'{self.name} - {self.get_billing_cycle_display()} (R$ {self.price})'
     
-    @property
-    def annual_price(self):
-        """Retorna o valor anual do plano."""
-        multipliers = {
-            self.BillingCycle.MONTHLY: 12,
-            self.BillingCycle.QUARTERLY: 4,
-            self.BillingCycle.SEMESTER: 2,
-            self.BillingCycle.ANNUAL: 1,
-        }
-        return self.price * multipliers.get(self.billing_cycle, 1)
-    
-    @property
-    def price_per_month(self):
-        """Retorna o valor mensal do plano."""
-        if self.billing_cycle == self.BillingCycle.MONTHLY:
-            return self.price
-        elif self.billing_cycle == self.BillingCycle.QUARTERLY:
-            return self.price / 3
-        elif self.billing_cycle == self.BillingCycle.SEMESTER:
-            return self.price / 6
-        elif self.billing_cycle == self.BillingCycle.ANNUAL:
-            return self.price / 12
-        return self.price
-    
     def increment_subscribers(self):
-        """Incrementa o contador de assinantes."""
         self.total_subscribers += 1
         self.save(update_fields=['total_subscribers'])
     
     def decrement_subscribers(self):
-        """Decrementa o contador de assinantes."""
         if self.total_subscribers > 0:
             self.total_subscribers -= 1
             self.save(update_fields=['total_subscribers'])
@@ -169,10 +143,10 @@ class Subscription(BaseModel):
     
     class SubscriptionStatus(models.TextChoices):
         ACTIVE = 'active', 'Ativa'
+        PENDING = 'pending', 'Pendente de Pagamento'
         SUSPENDED = 'suspended', 'Suspensa'
         CANCELLED = 'cancelled', 'Cancelada'
         EXPIRED = 'expired', 'Expirada'
-        PENDING = 'pending', 'Pendente'
     
     # Relacionamentos
     customer = models.ForeignKey(
@@ -220,6 +194,7 @@ class Subscription(BaseModel):
         _('Preço Pago'),
         max_digits=10,
         decimal_places=2,
+        default=0.00,
         help_text='Preço pago no momento da assinatura'
     )
     
@@ -292,19 +267,16 @@ class Subscription(BaseModel):
             models.Index(fields=['end_date', 'status']),
             models.Index(fields=['next_billing_date']),
         ]
-        unique_together = [['customer', 'plan', 'status']]
     
     def __str__(self):
         return f'{self.customer} - {self.plan} ({self.get_status_display()})'
     
     def save(self, *args, **kwargs):
-        """Valida e salva a assinatura."""
         if not self.pk:
             self._validate_dates()
         super().save(*args, **kwargs)
     
     def _validate_dates(self):
-        """Valida as datas da assinatura."""
         if self.start_date >= self.end_date:
             raise ValidationError(
                 _('A data de início deve ser anterior à data de término.')
@@ -321,17 +293,58 @@ class Subscription(BaseModel):
             )
     
     def activate(self):
-        """Ativa a assinatura."""
+        """Ativa a assinatura e registra a transação financeira."""
         if self.status != self.SubscriptionStatus.PENDING:
             raise InvalidStatusTransition(
                 _('Apenas assinaturas pendentes podem ser ativadas.')
             )
         
+        # Mudar status
         self.status = self.SubscriptionStatus.ACTIVE
         self.save(update_fields=['status'])
         
-        # Atualizar contador do plano
+        # Incrementar contador do plano
         self.plan.increment_subscribers()
+        
+        # Registrar transação financeira
+        self._create_financial_transaction()
+    
+    def _create_financial_transaction(self):
+        """Cria uma transação financeira para a assinatura."""
+        from apps.finance.models import Transaction
+        
+        # Verificar se já existe transação para esta assinatura
+        existing_transaction = Transaction.objects.filter(
+            description__icontains=f'Assinatura: {self.plan.name}',
+            customer=self.customer,
+            reference=f'subscription_{self.id}'
+        ).exists()
+        
+        if not existing_transaction:
+            # Criar transação de receita
+            Transaction.objects.create(
+                customer=self.customer,
+                transaction_type=Transaction.TransactionType.INCOME,
+                payment_method=self.payment_method,
+                amount=self.price_paid,
+                description=f'Assinatura: {self.plan.name} - Cliente: {self.customer.full_name}',
+                transaction_date=timezone.now(),
+                reference=f'subscription_{self.id}',
+                is_active=True
+            )
+            
+            # Se houver taxa de ativação, criar transação separada
+            if self.setup_fee_paid > 0:
+                Transaction.objects.create(
+                    customer=self.customer,
+                    transaction_type=Transaction.TransactionType.INCOME,
+                    payment_method=self.payment_method,
+                    amount=self.setup_fee_paid,
+                    description=f'Taxa de Ativação: {self.plan.name} - Cliente: {self.customer.full_name}',
+                    transaction_date=timezone.now(),
+                    reference=f'subscription_{self.id}_setup',
+                    is_active=True
+                )
     
     def suspend(self, reason=''):
         """Suspende a assinatura."""
@@ -339,7 +352,6 @@ class Subscription(BaseModel):
             raise InvalidStatusTransition(
                 _('Apenas assinaturas ativas ou pendentes podem ser suspensas.')
             )
-        
         self.status = self.SubscriptionStatus.SUSPENDED
         self.notes = reason
         self.save(update_fields=['status', 'notes'])
@@ -350,144 +362,140 @@ class Subscription(BaseModel):
             raise InvalidStatusTransition(
                 _('Assinatura já está cancelada ou expirada.')
             )
-        
         self.status = self.SubscriptionStatus.CANCELLED
         self.cancelled_at = timezone.now().date()
         self.notes = reason
         self.save(update_fields=['status', 'cancelled_at', 'notes'])
-        
-        # Atualizar contador do plano
         self.plan.decrement_subscribers()
     
-    def renew(self):
-        """Renova a assinatura."""
+    def mark_as_pending(self):
+        """Marca como pendente de pagamento."""
         if self.status != self.SubscriptionStatus.ACTIVE:
             raise InvalidStatusTransition(
-                _('Apenas assinaturas ativas podem ser renovadas.')
+                _('Apenas assinaturas ativas podem ser marcadas como pendentes.')
             )
-        
-        # Calcular nova data de término
-        if self.plan.billing_cycle == Plan.BillingCycle.MONTHLY:
-            months = 1
-        elif self.plan.billing_cycle == Plan.BillingCycle.QUARTERLY:
-            months = 3
-        elif self.plan.billing_cycle == Plan.BillingCycle.SEMESTER:
-            months = 6
-        else:  # ANNUAL
-            months = 12
-        
-        # Atualizar datas
-        from dateutil.relativedelta import relativedelta
-        self.start_date = timezone.now().date()
-        self.end_date = self.start_date + relativedelta(months=months)
-        self.next_billing_date = self.end_date
-        self.free_services_used = 0
-        self.last_free_service_used = None
-        self.save(update_fields=[
-            'start_date', 'end_date', 'next_billing_date',
-            'free_services_used', 'last_free_service_used'
-        ])
-    
-    def use_free_service(self):
-        """Utiliza um serviço gratuito."""
-        if self.status != self.SubscriptionStatus.ACTIVE:
-            raise InvalidStatusTransition(
-                _('Apenas assinaturas ativas podem utilizar serviços gratuitos.')
-            )
-        
-        free_available = self.plan.free_services_per_month - self.free_services_used
-        if free_available <= 0:
-            raise ValidationError(
-                _('Você já utilizou todos os serviços gratuitos deste mês.')
-            )
-        
-        self.free_services_used += 1
-        self.last_free_service_used = timezone.now().date()
-        self.save(update_fields=['free_services_used', 'last_free_service_used'])
+        self.status = self.SubscriptionStatus.PENDING
+        self.save(update_fields=['status'])
     
     @property
     def free_services_remaining(self):
-        """Retorna quantos serviços gratuitos ainda estão disponíveis."""
         return self.plan.free_services_per_month - self.free_services_used
     
     @property
     def days_remaining(self):
-        """Retorna quantos dias faltam para o término."""
         if self.status != self.SubscriptionStatus.ACTIVE:
             return 0
         delta = self.end_date - timezone.now().date()
         return delta.days if delta.days > 0 else 0
-    
-    @property
-    def is_expired(self):
-        """Verifica se a assinatura expirou."""
-        return self.end_date < timezone.now().date() and self.status == self.SubscriptionStatus.ACTIVE
-    
-    def check_and_expire(self):
-        """Verifica e expira a assinatura se necessário."""
-        if self.is_expired:
-            self.status = self.SubscriptionStatus.EXPIRED
-            self.save(update_fields=['status'])
-            self.plan.decrement_subscribers()
-            return True
-        return False
 
+    def activate(self):
+        """Ativa a assinatura e registra a transação financeira."""
+        if self.status != self.SubscriptionStatus.PENDING:
+            raise InvalidStatusTransition(
+                _('Apenas assinaturas pendentes podem ser ativadas.')
+            )
+        
+        # Mudar status
+        self.status = self.SubscriptionStatus.ACTIVE
+        self.save(update_fields=['status'])
+        
+        # Incrementar contador do plano
+        self.plan.increment_subscribers()
+        
+        # Registrar transação financeira
+        self._create_financial_transaction()
+    
+    def _create_financial_transaction(self):
+        """Cria uma transação financeira para a assinatura."""
+        from apps.finance.models import Transaction
+        
+        # Verificar se já existe transação para esta assinatura
+        existing_transaction = Transaction.objects.filter(
+            reference=f'subscription_{self.id}'
+        ).exists()
+        
+        if not existing_transaction:
+            # Criar transação de receita
+            transaction = Transaction.objects.create(
+                customer=self.customer,
+                transaction_type=Transaction.TransactionType.INCOME,
+                payment_method=self.payment_method,
+                amount=self.price_paid,
+                description=f'Assinatura: {self.plan.name} - Cliente: {self.customer.full_name}',
+                transaction_date=timezone.now(),
+                reference=f'subscription_{self.id}',
+                is_active=True
+            )
+            print(f"✅ Transação criada para assinatura {self.id}: R$ {self.price_paid}")
+            
+            # Se houver taxa de ativação, criar transação separada
+            if self.setup_fee_paid > 0:
+                Transaction.objects.create(
+                    customer=self.customer,
+                    transaction_type=Transaction.TransactionType.INCOME,
+                    payment_method=self.payment_method,
+                    amount=self.setup_fee_paid,
+                    description=f'Taxa de Ativação: {self.plan.name} - Cliente: {self.customer.full_name}',
+                    transaction_date=timezone.now(),
+                    reference=f'subscription_{self.id}_setup',
+                    is_active=True
+                )
+                print(f"✅ Transação de taxa de ativação criada: R$ {self.setup_fee_paid}")
+        else:
+            print(f"⚠️ Transação já existe para assinatura {self.id}")
 
-class SubscriptionHistory(BaseModel):
-    """
-    Histórico de mudanças na assinatura.
-    """
+    def activate(self):
+        """Ativa a assinatura e registra a transação financeira."""
+        if self.status != self.SubscriptionStatus.PENDING:
+            raise InvalidStatusTransition(
+                _('Apenas assinaturas pendentes podem ser ativadas.')
+            )
+        
+        # Mudar status
+        self.status = self.SubscriptionStatus.ACTIVE
+        self.save(update_fields=['status'])
+        
+        # Incrementar contador do plano
+        self.plan.increment_subscribers()
+        
+        # Registrar transação financeira
+        self._create_financial_transaction()
     
-    class ActionType(models.TextChoices):
-        CREATED = 'created', 'Criada'
-        ACTIVATED = 'activated', 'Ativada'
-        SUSPENDED = 'suspended', 'Suspensa'
-        CANCELLED = 'cancelled', 'Cancelada'
-        RENEWED = 'renewed', 'Renovada'
-        EXPIRED = 'expired', 'Expirada'
-        PAYMENT = 'payment', 'Pagamento'
-    
-    subscription = models.ForeignKey(
-        Subscription,
-        on_delete=models.CASCADE,
-        related_name='history',
-        verbose_name=_('Assinatura')
-    )
-    
-    action = models.CharField(
-        _('Ação'),
-        max_length=20,
-        choices=ActionType.choices,
-        db_index=True
-    )
-    
-    description = models.TextField(
-        _('Descrição'),
-        max_length=500,
-        blank=True,
-        help_text='Descrição detalhada da ação'
-    )
-    
-    metadata = models.JSONField(
-        _('Metadados'),
-        default=dict,
-        blank=True,
-        help_text='Dados adicionais em formato JSON'
-    )
-    
-    performed_by = models.ForeignKey(
-        'accounts.User',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='subscription_actions',
-        verbose_name=_('Realizado por')
-    )
-    
-    class Meta:
-        verbose_name = _('Histórico da Assinatura')
-        verbose_name_plural = _('Históricos das Assinaturas')
-        ordering = ['-created_at']
-    
-    def __str__(self):
-        return f'{self.subscription} - {self.get_action_display()} ({self.created_at})'
+    def _create_financial_transaction(self):
+        """Cria uma transação financeira para a assinatura."""
+        from apps.finance.models import Transaction
+        
+        # Verificar se já existe transação para esta assinatura
+        existing_transaction = Transaction.objects.filter(
+            reference=f'subscription_{self.id}'
+        ).exists()
+        
+        if not existing_transaction:
+            # Criar transação de receita
+            transaction = Transaction.objects.create(
+                customer=self.customer,
+                transaction_type=Transaction.TransactionType.INCOME,
+                payment_method=self.payment_method,
+                amount=self.price_paid,
+                description=f'Assinatura: {self.plan.name} - Cliente: {self.customer.full_name}',
+                transaction_date=timezone.now(),
+                reference=f'subscription_{self.id}',
+                is_active=True
+            )
+            print(f"✅ Transação criada para assinatura {self.id}: R$ {self.price_paid}")
+            
+            # Se houver taxa de ativação, criar transação separada
+            if self.setup_fee_paid > 0:
+                Transaction.objects.create(
+                    customer=self.customer,
+                    transaction_type=Transaction.TransactionType.INCOME,
+                    payment_method=self.payment_method,
+                    amount=self.setup_fee_paid,
+                    description=f'Taxa de Ativação: {self.plan.name} - Cliente: {self.customer.full_name}',
+                    transaction_date=timezone.now(),
+                    reference=f'subscription_{self.id}_setup',
+                    is_active=True
+                )
+                print(f"✅ Transação de taxa de ativação criada: R$ {self.setup_fee_paid}")
+        else:
+            print(f"⚠️ Transação já existe para assinatura {self.id}")

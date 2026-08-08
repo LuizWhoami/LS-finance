@@ -256,3 +256,12 @@ class CustomerHistory(BaseModel):
     
     def __str__(self):
         return f'{self.customer} - {self.get_type_display()} ({self.created_at})'
+    # Adicionar unique=True no telefone
+    phone = models.CharField(
+        _('Telefone'),
+        max_length=15,
+        validators=[validate_phone],
+        db_index=True,
+        unique=True,  # ADICIONAR ESTA LINHA
+        help_text='Telefone com DDD (apenas números)'
+    )

@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
+from django.shortcuts import redirect
+from django.contrib import messages
 
 from .models import ProductCategory, Product, InventoryMovement
 
@@ -59,3 +61,34 @@ class ProductAdmin(admin.ModelAdmin):
             return '⚠️ Baixo'
         return '✅ Normal'
     is_low_stock_indicator.short_description = 'Estoque'
+    
+    actions = ['register_sale']
+    
+    def register_sale(self, request, queryset):
+        """Ação para registrar venda de produtos."""
+        from apps.finance.models import Transaction
+        count = 0
+        for product in queryset:
+            if product.quantity > 0:
+                Transaction.objects.create(
+                    transaction_type='income',
+                    payment_method='cash',
+                    amount=product.sale_price,
+                    description=f'Venda de Produto: {product.name}',
+                    transaction_date=timezone.now(),
+                    reference=f'product_{product.id}'
+                )
+                # Reduzir estoque
+                product.quantity -= 1
+                product.save(update_fields=['quantity'])
+                count += 1
+        self.message_user(request, f'{count} venda(s) de produtos registradas com sucesso!')
+    register_sale.short_description = 'Registrar venda do(s) produto(s) selecionado(s)'
+
+
+@admin.register(InventoryMovement)
+class InventoryMovementAdmin(admin.ModelAdmin):
+    list_display = ['product', 'movement_type', 'quantity', 'reason', 'created_at']
+    list_filter = ['movement_type', 'created_at']
+    search_fields = ['product__name', 'reason']
+    readonly_fields = ['created_at', 'updated_at']

@@ -5,6 +5,38 @@
 
 {% block page_title %}Assinaturas{% endblock %}
 
+{% block extra_css %}
+<style>
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.75rem;
+    }
+    .status-active { background: #d4edda; color: #155724; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-suspended { background: #f8d7da; color: #721c24; }
+    .status-cancelled { background: #e2e3e5; color: #383d41; }
+    .status-expired { background: #f5c6cb; color: #721c24; }
+    
+    .quick-actions {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+    }
+    .quick-actions .btn-sm {
+        font-size: 0.7rem;
+        padding: 2px 8px;
+    }
+    .action-btn {
+        transition: all 0.2s;
+    }
+    .action-btn:hover {
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}
+
 {% block page_actions %}
 <a href="{% url 'subscriptions:add' %}" class="btn btn-primary">
     <i class="fas fa-plus"></i> Nova Assinatura
@@ -17,6 +49,38 @@
 {% block content %}
 <div class="card">
     <div class="card-body">
+        <!-- Filtros -->
+        <form method="get" class="row g-3 mb-3">
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">Todos os status</option>
+                    {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="plan" class="form-select">
+                    <option value="">Todos os planos</option>
+                    {% for plan in plans %}
+                    <option value="{{ plan.pk }}" {% if request.GET.plan == plan.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ plan.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control" placeholder="Buscar cliente..." value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i> Filtrar
+                </button>
+            </div>
+        </form>
+
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead>
@@ -27,22 +91,63 @@
                         <th>Vencimento</th>
                         <th>Status</th>
                         <th>Valor</th>
+                        <th>Ações Rápidas</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for subscription in subscriptions %}
                     <tr>
-                        <td>{{ subscription.customer.full_name }}</td>
+                        <td>
+                            <strong>{{ subscription.customer.full_name }}</strong>
+                            <br>
+                            <small class="text-muted">{{ subscription.customer.phone }}</small>
+                        </td>
                         <td>{{ subscription.plan.name }}</td>
                         <td>{{ subscription.start_date|date:"d/m/Y" }}</td>
                         <td>{{ subscription.end_date|date:"d/m/Y" }}</td>
                         <td>
-                            <span class="badge bg-{% if subscription.status == 'active' %}success{% elif subscription.status == 'expired' %}danger{% elif subscription.status == 'suspended' %}warning{% else %}secondary{% endif %}">
+                            <span class="status-badge status-{{ subscription.status }}">
                                 {{ subscription.get_status_display }}
                             </span>
                         </td>
                         <td>R$ {{ subscription.price_paid }}</td>
+                        <td>
+                            <div class="quick-actions">
+                                {% if subscription.status == 'pending' %}
+                                <form method="post" action="{% url 'subscriptions:quick_status' subscription.pk 'active' %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success btn-sm action-btn" title="Ativar">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                                
+                                {% if subscription.status == 'active' %}
+                                <form method="post" action="{% url 'subscriptions:quick_status' subscription.pk 'suspended' %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-warning btn-sm action-btn" title="Suspender">
+                                        <i class="fas fa-pause"></i>
+                                    </button>
+                                </form>
+                                <form method="post" action="{% url 'subscriptions:quick_status' subscription.pk 'pending' %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-warning btn-sm action-btn" title="Pendente">
+                                        <i class="fas fa-clock"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                                
+                                {% if subscription.status != 'cancelled' and subscription.status != 'expired' %}
+                                <form method="post" action="{% url 'subscriptions:quick_status' subscription.pk 'cancelled' %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm action-btn" title="Cancelar" onclick="return confirm('Tem certeza que deseja cancelar esta assinatura?')">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
                         <td>
                             <a href="{% url 'subscriptions:detail' subscription.pk %}" class="btn btn-sm btn-info" title="Visualizar">
                                 <i class="fas fa-eye"></i>
@@ -57,8 +162,13 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center text-muted">
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="fas fa-crown fa-3x mb-3 d-block"></i>
                             Nenhuma assinatura cadastrada.
+                            <br>
+                            <a href="{% url 'subscriptions:add' %}" class="btn btn-sm btn-primary mt-2">
+                                <i class="fas fa-plus"></i> Criar Primeira Assinatura
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}

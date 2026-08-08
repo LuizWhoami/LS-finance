@@ -119,11 +119,6 @@
         color: #ffc107;
     }
     
-    .rating-stars {
-        color: #ffc107;
-        font-size: 0.9rem;
-    }
-    
     .progress-custom {
         height: 6px;
         border-radius: 3px;
@@ -182,11 +177,6 @@
         <div class="number">R$ {{ avg_profit|floatformat:2 }}</div>
         <div class="label">Média por Barbeiro</div>
     </div>
-    <div class="summary-card" style="border-left-color: #6f42c1;">
-        <div class="icon"><i class="fas fa-star"></i></div>
-        <div class="number">{{ avg_rating|floatformat:1 }}</div>
-        <div class="label">Avaliação Média</div>
-    </div>
 </div>
 
 <!-- Período -->
@@ -206,20 +196,6 @@
             <div class="barber-name">{{ data.barber.full_name }}</div>
             <div class="barber-specialty">
                 {{ data.barber.specialty|default:"Profissional" }}
-                <span class="rating-stars">
-                    {% if data.rating > 0 %}
-                        {% for i in "12345"|make_list %}
-                            {% if forloop.counter <= data.rating %}
-                            ★
-                            {% else %}
-                            ☆
-                            {% endif %}
-                        {% endfor %}
-                        <small class="text-muted">({{ data.rating }})</small>
-                    {% else %}
-                        <small class="text-muted">Sem avaliações</small>
-                    {% endif %}
-                </span>
             </div>
             
             <div class="barber-stats">
@@ -286,7 +262,6 @@
                         <th>Comissões Pagas</th>
                         <th>Lucro</th>
                         <th>Ticket Médio</th>
-                        <th>Avaliação</th>
                         <th>Performance</th>
                     </tr>
                 </thead>
@@ -301,13 +276,6 @@
                         <td class="fw-bold text-success">R$ {{ data.profit|floatformat:2 }}</td>
                         <td>R$ {{ data.avg_ticket|floatformat:2 }}</td>
                         <td>
-                            {% if data.rating > 0 %}
-                            <span class="text-warning">★ {{ data.rating }}</span>
-                            {% else %}
-                            <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
-                        <td>
                             <div class="progress" style="height: 6px; width: 80px;">
                                 <div class="progress-bar bg-{% if data.utilization >= 80 %}success{% elif data.utilization >= 50 %}warning{% else %}danger{% endif %}" 
                                      style="width: {{ data.utilization|default:"0" }}%;"></div>
@@ -317,7 +285,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="9" class="text-center text-muted">Nenhum dado disponível</td>
+                        <td colspan="8" class="text-center text-muted">Nenhum dado disponível</td>
                     </tr>
                     {% endfor %}
                 </tbody>

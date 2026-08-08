@@ -80,20 +80,19 @@ class Barber(BaseModel):
         db_index=True
     )
     
-    # Avaliação (será calculada automaticamente)
-    rating = models.DecimalField(
-        _('Avaliação'),
-        max_digits=3,
-        decimal_places=2,
-        default=0.00,
-        validators=[MinValueValidator(0), MaxValueValidator(5)],
-        help_text='Média de avaliações (0-5)'
-    )
-    
     total_services = models.PositiveIntegerField(
         _('Total de Serviços'),
         default=0,
         help_text='Total de serviços realizados'
+    )
+    
+    # Imagem do barbeiro
+    image = models.ImageField(
+        _('Imagem'),
+        upload_to='barbers/%Y/%m/',
+        blank=True,
+        null=True,
+        help_text='Foto do barbeiro'
     )
     
     class Meta:
@@ -101,7 +100,7 @@ class Barber(BaseModel):
         verbose_name_plural = _('Barbeiros')
         ordering = ['user__first_name', 'user__last_name']
         indexes = [
-            models.Index(fields=['status', 'rating']),
+            models.Index(fields=['status', 'is_active']),
             models.Index(fields=['user', 'is_active']),
         ]
     
@@ -122,26 +121,6 @@ class Barber(BaseModel):
     def email(self):
         """Retorna o email do barbeiro."""
         return self.user.email
-    
-    def update_rating(self):
-        """Atualiza a avaliação média do barbeiro."""
-        from apps.appointments.models import Appointment
-        
-        appointments = Appointment.objects.filter(
-            barber=self,
-            status=Appointment.AppointmentStatus.COMPLETED,
-            rating__isnull=False
-        )
-        
-        if appointments.exists():
-            avg_rating = appointments.aggregate(
-                models.Avg('rating')
-            )['rating__avg'] or 0
-            self.rating = round(avg_rating, 2)
-        else:
-            self.rating = 0.00
-        
-        self.save(update_fields=['rating'])
     
     def increment_services(self):
         """Incrementa o contador de serviços realizados."""
@@ -315,47 +294,3 @@ class TimeOff(BaseModel):
     def duration_days(self):
         """Retorna o número de dias de afastamento."""
         return (self.end_date - self.start_date).days + 1
-
-    def is_available_for_appointment(self, start_time, end_time):
-        """Verifica se o barbeiro está disponível em um horário específico."""
-        from datetime import time
-        
-        # Verificar se o dia da semana está disponível
-        day_of_week = start_time.weekday() + 1  # Django: 0=Segunda, 6=Domingo
-        
-        # Buscar horário de trabalho para este dia
-        schedule = WorkSchedule.objects.filter(
-            barber=self,
-            day_of_week=day_of_week,
-            is_available=True
-        ).first()
-        
-        if not schedule:
-            return False
-        
-        # Verificar horário de início e término
-        start_time_only = start_time.time()
-        end_time_only = end_time.time()
-        
-        if start_time_only < schedule.start_time or end_time_only > schedule.end_time:
-            return False
-        
-        # Verificar intervalo de almoço
-        if schedule.break_start and schedule.break_end:
-            if start_time_only < schedule.break_end and end_time_only > schedule.break_start:
-                return False
-        
-        # Verificar se há conflitos com outros agendamentos
-        from apps.appointments.models import Appointment
-        conflicts = Appointment.objects.filter(
-            barber=self,
-            status__in=[
-                Appointment.AppointmentStatus.SCHEDULED,
-                Appointment.AppointmentStatus.CONFIRMED,
-                Appointment.AppointmentStatus.IN_PROGRESS
-            ],
-            start_time__lt=end_time,
-            end_time__gt=start_time
-        ).exists()
-        
-        return not conflicts

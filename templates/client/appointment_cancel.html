@@ -17,10 +17,20 @@
                     <div class="alert alert-warning">
                         <p><strong>Você está prestes a cancelar este agendamento:</strong></p>
                         <p>
-                            <strong>Serviço:</strong> {{ appointment.service.name }}<br>
+                            <strong>Serviço:</strong> 
+                            {% for item in appointment.items.all %}
+                                {{ item.service.name }}{% if not forloop.last %}, {% endif %}
+                            {% empty %}
+                                Serviço
+                            {% endfor %}
+                            <br>
                             <strong>Barbeiro:</strong> {{ appointment.barber.full_name }}<br>
                             <strong>Data:</strong> {{ appointment.start_time|date:"d/m/Y H:i" }}<br>
                             <strong>Valor:</strong> R$ {{ appointment.final_price }}
+                        </p>
+                        <p class="text-muted small">
+                            ✅ O cancelamento mantém o histórico no sistema.<br>
+                            ✅ O horário será <strong>liberado imediatamente</strong> para novos agendamentos.
                         </p>
                     </div>
                     

@@ -45,11 +45,13 @@ class HomeView(AdminRequiredMixin, TemplateView):
         start_of_week = today - timedelta(days=today.weekday())
         
         # ============================================================
-        # AGENDAMENTOS DE HOJE (APENAS ATIVOS)
+        # AGENDAMENTOS DE HOJE (APENAS ATIVOS E NÃO CANCELADOS)
         # ============================================================
         appointments_today = Appointment.objects.filter(
             start_time__date=today,
-            is_active=True  # APENAS ATIVOS
+            is_active=True
+        ).exclude(
+            status=Appointment.AppointmentStatus.CANCELLED
         )
         context['appointments_today'] = appointments_today.count()
         
@@ -81,6 +83,8 @@ class HomeView(AdminRequiredMixin, TemplateView):
             start_time__date__gte=start_of_month,
             start_time__date__lte=end_of_month,
             is_active=True
+        ).exclude(
+            status=Appointment.AppointmentStatus.CANCELLED
         ).count()
         
         # ============================================================
@@ -101,13 +105,14 @@ class HomeView(AdminRequiredMixin, TemplateView):
         # ============================================================
         # SERVIÇOS MAIS VENDIDOS (APENAS ATIVOS E CONCLUÍDOS)
         # ============================================================
-        top_services = Appointment.objects.filter(
-            status=Appointment.AppointmentStatus.COMPLETED,
-            start_time__date__gte=start_of_month,
-            is_active=True
+        from apps.appointments.models import AppointmentItem
+        top_services = AppointmentItem.objects.filter(
+            appointment__status=Appointment.AppointmentStatus.COMPLETED,
+            appointment__start_time__date__gte=start_of_month,
+            appointment__is_active=True
         ).values('service__name').annotate(
             total=Count('id'),
-            revenue=Sum('final_price')
+            revenue=Sum('price')
         ).order_by('-total')[:5]
         context['top_services'] = top_services
         
@@ -121,7 +126,7 @@ class HomeView(AdminRequiredMixin, TemplateView):
                 Appointment.AppointmentStatus.SCHEDULED,
                 Appointment.AppointmentStatus.CONFIRMED
             ]
-        ).select_related('customer', 'barber', 'service').order_by('start_time')[:5]
+        ).select_related('customer', 'barber').prefetch_related('items', 'items__service').order_by('start_time')[:5]
         
         # ============================================================
         # GRÁFICO: FATURAMENTO DIÁRIO (ÚLTIMOS 30 DIAS)
@@ -150,6 +155,8 @@ class HomeView(AdminRequiredMixin, TemplateView):
             count = Appointment.objects.filter(
                 start_time__date=day_start,
                 is_active=True
+            ).exclude(
+                status=Appointment.AppointmentStatus.CANCELLED
             ).count()
             weekday_counts.append(count)
         context['weekday_labels'] = weekdays

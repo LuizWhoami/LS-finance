@@ -1,7 +1,120 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}{% if form.instance.pk %}Editar{% else %}Nova{% endif %} Assinatura{% endblock %}
+
 {% block page_title %}{% if form.instance.pk %}Editar{% else %}Nova{% endif %} Assinatura{% endblock %}
+
+{% block extra_css %}
+<style>
+    .datepicker-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    .datepicker-card:focus-within {
+        border-color: #e94560;
+        box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.15);
+    }
+    .datepicker-card label {
+        font-weight: 600;
+        color: #1a1a2e;
+        font-size: 0.85rem;
+        display: block;
+        margin-bottom: 5px;
+    }
+    .datepicker-card input[type="date"] {
+        border: none;
+        padding: 10px 0;
+        font-size: 1.1rem;
+        width: 100%;
+        background: transparent;
+        color: #1a1a2e;
+        font-weight: 500;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        cursor: pointer;
+    }
+    .datepicker-card input[type="date"]:focus {
+        outline: none;
+    }
+    .datepicker-card input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(0.4);
+        cursor: pointer;
+        padding: 5px;
+        transition: filter 0.3s;
+    }
+    .datepicker-card input[type="date"]::-webkit-calendar-picker-indicator:hover {
+        filter: invert(0.2);
+    }
+    
+    .datepicker-card .date-icon {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        font-size: 1.2rem;
+        pointer-events: none;
+    }
+    
+    .datepicker-card input[type="date"]::-webkit-datetime-edit {
+        padding: 0;
+    }
+    
+    .datepicker-card input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .datepicker-card input[type="date"]::-webkit-datetime-edit-day-field {
+        color: #1a1a2e;
+    }
+    
+    .datepicker-card input[type="date"]::-webkit-datetime-edit-month-field {
+        color: #1a1a2e;
+    }
+    
+    .datepicker-card input[type="date"]::-webkit-datetime-edit-year-field {
+        color: #1a1a2e;
+    }
+    
+    .datepicker-card input[type="date"]:hover::-webkit-calendar-picker-indicator {
+        filter: invert(0.2);
+    }
+    
+    .datepicker-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .datepicker-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+    }
+    
+    .datepicker-card .help-text {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin-top: 2px;
+        display: block;
+    }
+    
+    .datepicker-card.error {
+        border-color: #dc3545;
+    }
+    
+    .datepicker-card.error .help-text {
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -18,7 +131,9 @@
                     {% endif %}
                     
                     <div class="mb-3">
-                        <label for="{{ form.customer.id_for_label }}" class="form-label">Cliente</label>
+                        <label for="{{ form.customer.id_for_label }}" class="form-label">
+                            <i class="fas fa-user"></i> Cliente
+                        </label>
                         {{ form.customer }}
                         {% if form.customer.errors %}
                         <div class="text-danger small">{{ form.customer.errors }}</div>
@@ -26,45 +141,62 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="{{ form.plan.id_for_label }}" class="form-label">Plano</label>
+                        <label for="{{ form.plan.id_for_label }}" class="form-label">
+                            <i class="fas fa-crown"></i> Plano
+                        </label>
                         {{ form.plan }}
                         {% if form.plan.errors %}
                         <div class="text-danger small">{{ form.plan.errors }}</div>
                         {% endif %}
+                        <small class="text-muted d-block mt-1">O preço do plano será aplicado automaticamente</small>
                     </div>
                     
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="{{ form.start_date.id_for_label }}" class="form-label">Data de Início</label>
-                                {{ form.start_date }}
-                                {% if form.start_date.errors %}
-                                <div class="text-danger small">{{ form.start_date.errors }}</div>
-                                {% endif %}
-                            </div>
+                    <!-- Datas com datepicker interativo -->
+                    <div class="datepicker-grid">
+                        <div class="datepicker-card {% if form.start_date.errors %}error{% endif %}">
+                            <label for="{{ form.start_date.id_for_label }}">
+                                <i class="fas fa-calendar-alt" style="color: #e94560;"></i> Data de Início
+                            </label>
+                            {{ form.start_date }}
+                            <span class="date-icon"><i class="fas fa-chevron-down"></i></span>
+                            {% if form.start_date.errors %}
+                            <div class="help-text text-danger">{{ form.start_date.errors }}</div>
+                            {% else %}
+                            <span class="help-text">Selecione a data de início</span>
+                            {% endif %}
                         </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="{{ form.end_date.id_for_label }}" class="form-label">Data de Término</label>
-                                {{ form.end_date }}
-                                {% if form.end_date.errors %}
-                                <div class="text-danger small">{{ form.end_date.errors }}</div>
-                                {% endif %}
-                            </div>
+                        
+                        <div class="datepicker-card {% if form.end_date.errors %}error{% endif %}">
+                            <label for="{{ form.end_date.id_for_label }}">
+                                <i class="fas fa-calendar-alt" style="color: #28a745;"></i> Data de Término
+                            </label>
+                            {{ form.end_date }}
+                            <span class="date-icon"><i class="fas fa-chevron-down"></i></span>
+                            {% if form.end_date.errors %}
+                            <div class="help-text text-danger">{{ form.end_date.errors }}</div>
+                            {% else %}
+                            <span class="help-text">Selecione a data de término</span>
+                            {% endif %}
                         </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="{{ form.next_billing_date.id_for_label }}" class="form-label">Próxima Cobrança</label>
-                                {{ form.next_billing_date }}
-                                {% if form.next_billing_date.errors %}
-                                <div class="text-danger small">{{ form.next_billing_date.errors }}</div>
-                                {% endif %}
-                            </div>
+                        
+                        <div class="datepicker-card {% if form.next_billing_date.errors %}error{% endif %}">
+                            <label for="{{ form.next_billing_date.id_for_label }}">
+                                <i class="fas fa-calendar-alt" style="color: #ffc107;"></i> Próxima Cobrança
+                            </label>
+                            {{ form.next_billing_date }}
+                            <span class="date-icon"><i class="fas fa-chevron-down"></i></span>
+                            {% if form.next_billing_date.errors %}
+                            <div class="help-text text-danger">{{ form.next_billing_date.errors }}</div>
+                            {% else %}
+                            <span class="help-text">Data da próxima cobrança</span>
+                            {% endif %}
                         </div>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="{{ form.payment_method.id_for_label }}" class="form-label">Forma de Pagamento</label>
+                        <label for="{{ form.payment_method.id_for_label }}" class="form-label">
+                            <i class="fas fa-credit-card"></i> Forma de Pagamento
+                        </label>
                         {{ form.payment_method }}
                         {% if form.payment_method.errors %}
                         <div class="text-danger small">{{ form.payment_method.errors }}</div>
@@ -73,14 +205,18 @@
                     
                     <div class="mb-3 form-check">
                         {{ form.auto_renew }}
-                        <label for="{{ form.auto_renew.id_for_label }}" class="form-check-label">Renovação Automática</label>
+                        <label for="{{ form.auto_renew.id_for_label }}" class="form-check-label">
+                            <i class="fas fa-sync"></i> Renovação Automática
+                        </label>
                         {% if form.auto_renew.errors %}
                         <div class="text-danger small">{{ form.auto_renew.errors }}</div>
                         {% endif %}
                     </div>
                     
                     <div class="mb-3">
-                        <label for="{{ form.notes.id_for_label }}" class="form-label">Observações</label>
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">
+                            <i class="fas fa-sticky-note"></i> Observações
+                        </label>
                         {{ form.notes }}
                         {% if form.notes.errors %}
                         <div class="text-danger small">{{ form.notes.errors }}</div>
@@ -100,4 +236,89 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Melhorar a experiência dos campos de data
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    
+    dateInputs.forEach(function(input) {
+        // Adicionar atributo min para não permitir datas passadas (opcional)
+        // const today = new Date().toISOString().split('T')[0];
+        // input.setAttribute('min', today);
+        
+        // Adicionar evento para mudar a cor quando selecionado
+        input.addEventListener('change', function() {
+            const card = this.closest('.datepicker-card');
+            if (this.value) {
+                card.style.borderColor = '#28a745';
+                card.style.backgroundColor = '#f8fffe';
+            } else {
+                card.style.borderColor = '#e9ecef';
+                card.style.backgroundColor = 'white';
+            }
+        });
+        
+        // Adicionar evento para melhorar a experiência do usuário
+        input.addEventListener('focus', function() {
+            const card = this.closest('.datepicker-card');
+            card.style.borderColor = '#e94560';
+            card.style.boxShadow = '0 0 0 4px rgba(233, 69, 96, 0.15)';
+            card.style.transform = 'scale(1.02)';
+        });
+        
+        input.addEventListener('blur', function() {
+            const card = this.closest('.datepicker-card');
+            card.style.boxShadow = 'none';
+            card.style.transform = 'scale(1)';
+            if (!this.value) {
+                card.style.borderColor = '#e9ecef';
+            }
+        });
+    });
+    
+    // Preencher data de término automaticamente baseado no plano
+    const planSelect = document.querySelector('#{{ form.plan.id_for_label }}');
+    const startDate = document.querySelector('#{{ form.start_date.id_for_label }}');
+    const endDate = document.querySelector('#{{ form.end_date.id_for_label }}');
+    const nextBillingDate = document.querySelector('#{{ form.next_billing_date.id_for_label }}');
+    
+    if (planSelect && startDate) {
+        // Quando o plano for selecionado, sugerir datas
+        planSelect.addEventListener('change', function() {
+            const planId = this.value;
+            if (planId && startDate.value) {
+                // Buscar duração do plano via AJAX
+                fetch(`/subscriptions/api/plan-duration/${planId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.duration_months) {
+                            const start = new Date(startDate.value);
+                            const end = new Date(start);
+                            end.setMonth(end.getMonth() + data.duration_months);
+                            
+                            const year = end.getFullYear();
+                            const month = String(end.getMonth() + 1).padStart(2, '0');
+                            const day = String(end.getDate()).padStart(2, '0');
+                            endDate.value = `${year}-${month}-${day}`;
+                            
+                            // Próxima cobrança = data de término
+                            nextBillingDate.value = endDate.value;
+                        }
+                    })
+                    .catch(error => console.log('Erro ao buscar duração:', error));
+            }
+        });
+        
+        // Quando a data de início mudar, recalcular término
+        startDate.addEventListener('change', function() {
+            if (planSelect.value && this.value) {
+                planSelect.dispatchEvent(new Event('change'));
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

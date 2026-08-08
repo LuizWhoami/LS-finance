@@ -529,3 +529,9 @@ class FixedExpense(BaseModel):
         self.save(update_fields=['last_charged', 'next_charge'])
         
         return transaction
+    reference = models.CharField(
+        _('Referência'),
+        max_length=100,
+        blank=True,
+        help_text='Número de referência ou código'
+    )

@@ -16,7 +16,7 @@ class BarberForm(forms.ModelForm):
         fields = [
             'user', 'registration_number', 'specialty', 'bio',
             'experience_years', 'commission_percentage', 'status',
-            'is_active'
+            'image', 'is_active'  # Adicionado campo image
         ]
         widgets = {
             'user': forms.Select(attrs={'class': 'form-select'}),
@@ -26,6 +26,7 @@ class BarberForm(forms.ModelForm):
             'experience_years': forms.NumberInput(attrs={'class': 'form-control'}),
             'commission_percentage': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
+            'image': forms.FileInput(attrs={'class': 'form-control'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 

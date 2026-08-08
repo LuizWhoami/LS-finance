@@ -3,188 +3,6 @@
 
 {% block title %}Bem-vindo à Barbearia LS{% endblock %}
 
-{% block extra_css %}
-<style>
-    /* ==========================================================================
-       CARDS PREMIUM DE SERVIÇOS NA HOME
-       ========================================================================== */
-    .services-grid-home {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 30px;
-    }
-    
-    .service-card-home {
-        background: white;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.08);
-        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        position: relative;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .service-card-home:hover {
-        transform: translateY(-12px);
-        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-    }
-    
-    .service-card-home .card-image {
-        position: relative;
-        height: 200px;
-        overflow: hidden;
-        background: linear-gradient(135deg, #1a1a2e, #16213e);
-    }
-    
-    .service-card-home .card-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.6s ease;
-    }
-    
-    .service-card-home:hover .card-image img {
-        transform: scale(1.08);
-    }
-    
-    .service-card-home .card-image .overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.7) 100%);
-        opacity: 0;
-        transition: opacity 0.4s;
-    }
-    
-    .service-card-home:hover .card-image .overlay {
-        opacity: 1;
-    }
-    
-    .service-card-home .card-image .price-badge {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        background: linear-gradient(135deg, #e94560, #c0392b);
-        color: white;
-        padding: 6px 16px;
-        border-radius: 25px;
-        font-weight: 700;
-        font-size: 1rem;
-        box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
-        z-index: 2;
-    }
-    
-    .service-card-home .card-image .duration-badge {
-        position: absolute;
-        bottom: 15px;
-        left: 15px;
-        background: rgba(0,0,0,0.6);
-        backdrop-filter: blur(10px);
-        color: white;
-        padding: 4px 14px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        z-index: 2;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    
-    .service-card-home .card-image .category-tag {
-        position: absolute;
-        top: 15px;
-        left: 15px;
-        background: rgba(255,255,255,0.2);
-        backdrop-filter: blur(10px);
-        color: white;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        z-index: 2;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .service-card-home .card-body {
-        padding: 20px;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .service-card-home .card-body .service-name {
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-bottom: 6px;
-        color: #1a1a2e;
-    }
-    
-    .service-card-home .card-body .service-description {
-        color: #666;
-        font-size: 0.9rem;
-        line-height: 1.5;
-        flex: 1;
-        margin-bottom: 12px;
-    }
-    
-    .service-card-home .card-body .service-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-top: 12px;
-        border-top: 1px solid #f0f0f0;
-        margin-top: auto;
-    }
-    
-    .service-card-home .card-body .btn-book {
-        background: linear-gradient(135deg, #e94560, #c0392b);
-        color: white;
-        border: none;
-        padding: 6px 20px;
-        border-radius: 25px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        transition: all 0.3s;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-    
-    .service-card-home .card-body .btn-book:hover {
-        transform: scale(1.05);
-        box-shadow: 0 4px 20px rgba(233, 69, 96, 0.4);
-        color: white;
-    }
-    
-    .service-card-home .card-body .btn-book i {
-        font-size: 0.8rem;
-    }
-    
-    /* ==========================================================================
-       RESPONSIVO
-       ========================================================================== */
-    @media (max-width: 768px) {
-        .services-grid-home {
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-        }
-    }
-    
-    @media (max-width: 576px) {
-        .services-grid-home {
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
 <!-- Hero Section -->
 <section class="hero-section">
@@ -192,6 +10,11 @@
         <h1>Barbearia <span>LS</span></h1>
         <p class="lead">Onde estilo e tradição se encontram</p>
         <p class="mb-4">Cuidamos do seu visual com excelência e profissionalismo</p>
+        <div class="d-flex justify-content-center gap-4 flex-wrap mb-4">
+            <span><i class="fas fa-map-marker-alt"></i> Rua Pedro Paulo da Silva, 41 - Centro</span>
+            <span><i class="fas fa-phone"></i> (75) 98705-7435 </span>
+            <span><i class="fab fa-whatsapp"></i> (75) 98705-7435 </span>
+        </div>
         <a href="{% url 'client:appointment_create' %}" class="btn btn-hero pulse">
             <i class="fas fa-calendar-plus"></i> Agendar Agora
         </a>
@@ -203,59 +26,39 @@
     <h2 class="section-title text-center">Nossos Serviços</h2>
     <p class="text-center text-muted mb-5">Conheça nossos serviços e cuide do seu estilo</p>
     
-    <div class="services-grid-home">
+    <div class="row">
         {% for service in services %}
-        <div class="service-card-home fade-in-up">
-            <!-- Imagem do Serviço -->
-            <div class="card-image">
+        <div class="col-md-4 mb-4 fade-in-up">
+            <div class="card service-card h-100">
                 {% if service.image %}
-                <img src="{{ service.image.url }}" alt="{{ service.name }}" loading="lazy">
+                <img src="{{ service.image.url }}" class="card-img-top" alt="{{ service.name }}">
                 {% else %}
-                <div class="d-flex align-items-center justify-content-center h-100" style="background: linear-gradient(135deg, #1a1a2e, #16213e);">
-                    <i class="fas fa-cut fa-4x text-white opacity-50"></i>
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                    <i class="fas fa-cut fa-4x text-secondary"></i>
                 </div>
                 {% endif %}
-                <div class="overlay"></div>
-                
-                <!-- Badges -->
-                <span class="price-badge">R$ {{ service.price }}</span>
-                <span class="category-tag">{{ service.category.name }}</span>
-                <span class="duration-badge">
-                    <i class="fas fa-clock"></i> {{ service.duration_formatted }}
-                </span>
-            </div>
-            
-            <!-- Conteúdo -->
-            <div class="card-body">
-                <h5 class="service-name">{{ service.name }}</h5>
-                <p class="service-description">{{ service.description|truncatechars:80 }}</p>
-                
-                <div class="service-footer">
-                    <span class="text-muted small">
-                        <i class="fas fa-star text-warning"></i>
-                        {% if service.total_performed > 0 %}
-                        {{ service.total_performed }} realizados
-                        {% else %}
-                        Novo
-                        {% endif %}
-                    </span>
-                    <a href="{% url 'client:appointment_create' %}?service={{ service.id }}" class="btn-book">
-                        <i class="fas fa-calendar-plus"></i> Agendar
-                    </a>
+                <div class="card-body">
+                    <span class="price-tag">R$ {{ service.price }}</span>
+                    <h5 class="card-title">{{ service.name }}</h5>
+                    <p class="card-text text-muted">{{ service.description|truncatechars:100 }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-primary">
+                            <i class="fas fa-clock"></i> {{ service.duration_formatted }}
+                        </span>
+                        <a href="{% url 'client:appointment_create' %}?service={{ service.id }}" class="btn btn-primary">
+                            Agendar
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
         {% empty %}
-        <div class="col-12">
-            <div class="empty-state">
-                <i class="fas fa-cut"></i>
-                <h4>Nenhum serviço disponível</h4>
-                <p>Em breve teremos novidades para você!</p>
-            </div>
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-cut fa-3x text-muted mb-3"></i>
+            <p class="text-muted">Nenhum serviço disponível no momento.</p>
         </div>
         {% endfor %}
     </div>
-    
     <div class="text-center mt-4">
         <a href="{% url 'client:services' %}" class="btn btn-outline-accent">
             <i class="fas fa-arrow-right"></i> Ver Todos os Serviços
@@ -269,34 +72,23 @@
     <p class="text-center text-muted mb-5">Profissionais qualificados prontos para atender você</p>
     
     <div class="row">
-        {% for barber in barbers|slice:":4" %}
+        {% for barber in barbers %}
         <div class="col-md-3 col-6 mb-4 fade-in-up">
             <div class="card barber-card">
                 <div class="avatar-wrapper">
-                    {% if barber.user.avatar %}
-                    <img src="{{ barber.user.avatar.url }}" alt="{{ barber.full_name }}" class="avatar" loading="lazy">
+                    {% if barber.image %}
+                    <img src="{{ barber.image.url }}" alt="{{ barber.full_name }}" loading="lazy">
                     {% else %}
-                    <div class="avatar bg-light d-flex align-items-center justify-content-center mx-auto">
-                        <i class="fas fa-user fa-3x text-secondary"></i>
+                    <div class="avatar-placeholder">
+                        <i class="fas fa-user"></i>
                     </div>
                     {% endif %}
                 </div>
-                <h6>{{ barber.full_name }}</h6>
-                <small class="text-muted">{{ barber.specialty|default:"Profissional" }}</small>
-                <div class="rating">
-                    {% if barber.rating > 0 %}
-                        {% for i in "12345"|make_list %}
-                            {% if forloop.counter <= barber.rating %}
-                            ★
-                            {% else %}
-                            ☆
-                            {% endif %}
-                        {% endfor %}
-                        <small>({{ barber.rating }})</small>
-                    {% else %}
-                        <span class="text-muted">Sem avaliações</span>
-                    {% endif %}
-                </div>
+                <h6 class="barber-name">{{ barber.full_name }}</h6>
+                <small class="text-muted barber-specialty">{{ barber.specialty|default:"Profissional" }}</small>
+                <a href="{% url 'client:appointment_create' %}?barber={{ barber.id }}" class="btn btn-primary btn-sm mt-2">
+                    Agendar
+                </a>
             </div>
         </div>
         {% empty %}
@@ -354,4 +146,77 @@
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .barber-card {
+        background: white;
+        border: none;
+        border-radius: 16px;
+        padding: 20px 15px;
+        text-align: center;
+        transition: all 0.4s;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        height: 100%;
+    }
+    .barber-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 8px 35px rgba(0,0,0,0.12);
+    }
+    .barber-card .avatar-wrapper {
+        width: 90px;
+        height: 90px;
+        margin: 0 auto 12px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid #e94560;
+        padding: 3px;
+        background: white;
+    }
+    .barber-card .avatar-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        transition: transform 0.4s;
+    }
+    .barber-card:hover .avatar-wrapper img {
+        transform: scale(1.05);
+    }
+    .barber-card .avatar-wrapper .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        color: rgba(255,255,255,0.3);
+        font-size: 2.5rem;
+        border-radius: 50%;
+    }
+    .barber-card .barber-name {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 2px;
+        color: #1a1a2e;
+    }
+    .barber-card .barber-specialty {
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+    .barber-card .btn-primary {
+        background: linear-gradient(135deg, #e94560, #c0392b);
+        border: none;
+        border-radius: 20px;
+        padding: 5px 18px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .barber-card .btn-primary:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 20px rgba(233, 69, 96, 0.4);
+    }
+</style>
 {% endblock %}
